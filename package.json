@@ -1,0 +1,25 @@
+{
+  "name": "cloud_a2_backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "vim.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.16.4",
+    "node-fetch": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/labanlin1/Cloud_A2_Backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/labanlin1/Cloud_A2_Backend/issues"
+  },
+  "homepage": "https://github.com/labanlin1/Cloud_A2_Backend#readme"
+}
