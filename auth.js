@@ -54,7 +54,6 @@ auth.login = (username, password) => {
                 }
             })
         })
-
     })
 }
 
@@ -64,7 +63,7 @@ auth.createUser = (username, password) => {
         let url = `${rootURL}/auth/${username}.json`
 
         bcrypt.hash(password, saltRounds, function(err, hash){
-            if (!err){
+            if (!err) {
                 let arguments = {
                     method: "PUT",
                     body: JSON.stringify(hash)
