@@ -24,7 +24,6 @@ app.use(bodyParser.json());
  */
 
 const http = require("http");
-const hostname = '127.0.0.1';
 const port = process.env.PORT || 5000;
 
 router.get('/', function(req, res) {
@@ -71,10 +70,15 @@ router.get('/vm/all', (req, res) => {
 
 app.use('/', router);
 
-//listen for request on port 3000, and as a callback function have the port listened on logged
-app.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+app.listen(port ,function(){
+  console.log("up and running on port "+process.env.PORT);
 });
+
+
+//listen for request on port 3000, and as a callback function have the port listened on logged
+// app.listen(port, () => {
+//   console.log(`Server running at http://${hostname}:${port}/`);
+// });
 
 // let Event = {
 //   eventType: "Create",
