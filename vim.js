@@ -1,7 +1,12 @@
-const monitor = require('./monitor')
+//const monitor = require('./monitor')
+const monitor = require('./Monitor_with_Usage_Calculator')
 const auth = require('./auth')
-
-
+var express = require('express');        
+var app = express();                 
+var bodyParser = require('body-parser');
+var router = express.Router();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 /**
  * OVERVIEW
  * 
@@ -11,30 +16,63 @@ const auth = require('./auth')
  * - For all create events, call createVM(Event)
  * - For all other events (start, stop, etc) call event(Event)
  * - For vm information, call getVMs(Event)
- * - Sample monitor.js code below - @Aayush let me know if I need to clarify
+ * - Sample monitor.js code below
  * 
  * Auth.js
  * - Auth has two functions: createUser and login
  * 
  */
 
-//Install Express for easier routing - @Aayush
-
 const http = require("http");
 const hostname = '127.0.0.1';
 const port = process.env.PORT || 3000;
 
-//Create HTTP server and listen on port 3000 for requests
-const server = http.createServer((req, res) => {
-
-  //Set the response HTTP header with HTTP status and Content type
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World\n');
+router.get('/', function(req, res) {
+  res.json({ message: 'Hello World!' });   
 });
 
+router.post('/createUser', (req, res) => {
+  var username = req.query.username;
+  var password = req.query.password;
+  auth.createUser(username, password).then(function(data) {
+    res.json(data);
+  });  
+});
+
+router.post('/login', (req, res) => {
+  var username = req.query.username;
+  var password = req.query.password;
+  auth.login(username, password).then(function(data) {
+    res.json(data);
+  });  
+});
+
+router.post('/create', (req, res) => {
+  var event = req.body.event;
+  monitor.createVM(event).then(function(data){
+    res.json(data);
+  }); 
+});
+
+router.post('/launchEvent', (req, res) => {
+  var event = req.body.event;
+  monitor.event(event).then(function(data){
+    res.json(data);
+  }); 
+});
+
+router.get('/vm/all', (req, res) => {
+  var event = req.body.event;
+  console.log(event);
+  monitor.getVMs(event).then(function(data){
+    res.json(data);
+  });
+});
+
+app.use('/', router);
+
 //listen for request on port 3000, and as a callback function have the port listened on logged
-server.listen(port, hostname, () => {
+app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
 
