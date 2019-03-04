@@ -262,8 +262,8 @@ monitor.calculateUsage = (Event, startTime, endTime) =>{
 
                 //add this object to the overall usage report for the user
                 customerUsageReport.push(vmUsageReport)
+                resolve(customerUsageReport)
             })
         });
-        resolve(customerUsageReport)
     })
 }
