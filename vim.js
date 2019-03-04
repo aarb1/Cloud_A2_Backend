@@ -1,5 +1,4 @@
-//const monitor = require('./monitor')
-const monitor = require('./Monitor_with_Usage_Calculator')
+const monitor = require('./monitor')
 const auth = require('./auth')
 var express = require('express');        
 var app = express();                 
@@ -71,7 +70,7 @@ router.get('/vm/all', (req, res) => {
 app.use('/', router);
 
 app.listen(port ,function(){
-  console.log("up and running on port "+process.env.PORT);
+  console.log("up and running on port "+ port);
 });
 
 
