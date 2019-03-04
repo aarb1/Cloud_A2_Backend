@@ -190,79 +190,80 @@ monitor.getVMs = (Event) => {
 // }
 
 //calculateUsage returns the customerUsage report for the consumer.
-monitor.calculateUsage = (startTime, endTime) =>{
+monitor.calculateUsage = (Event, startTime, endTime) =>{
     return new Promise((resolve) => {
-        let listOfVms = monitor.getVMs // returns the list of VMs owned by the current user
+        monitor.getVMs(Event).then(function(listOfVms){                
+            // returns the list of VMs owned by the current user
+            console.log(listOfVms);
+            //to record all the vms and their usageCycles
+            let usageReport = [];
 
-        //to record all the vms and their usageCycles
-        let usageReport = [];
+            listOfVms.forEach(vm => {
+                vm.events.forEach(e => {
+                    //find which events are actually within the time frame
+                    let usageEvents= []
+                    if (e.eventTime >= startTime & e.eventTime <= endTime){
+                        usageEvents.push(e)
+                    }
+                })
+                //array for recording all usage cycles for the vm
+                let usageCycles = []
 
-        listOfVms.forEach(vm => {
-            vm.events.forEach(e => {
-                //find which events are actually within the time frame
-                let usageEvents= []
-                if (e.eventTime >= startTime & e.eventTime <= endTime){
-                    usageEvents.push(e)
-                }
-            })
-            //array for recording all usage cycles for the vm
-            let usageCycles = []
+                //iterate through all the events that occured within this time frame
+                for (i = 0; i < usageEvents.length; i++){
 
-            //iterate through all the events that occured within this time frame
-            for (i = 0; i < usageEvents.length; i++){
+                    //set the fees based on the vmType during which the usage cycle occurred .
+                    let rate = 0;
+                    if (usageEvents[i].vmType == "Large"){
+                        rate = 0.10; //dollars per minute
+                    } else if (usageEvents[i].vmType == "Ultra-Large") {
+                        rate = 0.15;
+                    } else {
+                        rate = 0.5;
+                    }
 
-                //set the fees based on the vmType during which the usage cycle occurred .
-                let rate = 0;
-                if (usageEvents[i].vmType == "Large"){
-                    rate = 0.10; //dollars per minute
-                } else if (usageEvents[i].vmType == "Ultra-Large") {
-                    rate = 0.15;
-                } else {
-                    rate = 0.5;
-                }
+                    //variable used to record the beginning event of a usage cycle
+                    let previousEvent = null
 
-                //variable used to record the beginning event of a usage cycle
-                let previousEvent = null
+                    //record the beginning of a cycle
+                    if (previousEvent == null){
+                        if (usageEvents[i].eventType !== "Stop"){
+                            previousEvent = usageEvents[i];
+                        }
+                    }
 
-                //record the beginning of a cycle
-                if (previousEvent == null){
-                    if (usageEvents[i].eventType !== "Stop"){
+                    //if the event is a Start
+                    if (usageEvents[i].eventType == "Start"){
                         previousEvent = usageEvents[i];
-                    }
-                }
-
-                //if the event is a Start
-                if (usageEvents[i].eventType == "Start"){
-                    previousEvent = usageEvents[i];
-                }  else {
-                    //calculate the cycle duration and multiply by the related rate based on the vm type
-                    let cycle = {
-                        duration: (usageEvents[i].eventTime - previousEvent.eventTime)*1000, //convert to seconds
-                        vmType: usageEvents[i].vmType,
-                        charge: (usageEvents[i].eventTime - previousEvent.eventTime)*1000/60*rate //convert to minutes
-                    }
-
-                    //add to the list of cycles for this vm within this time period
-                    usageCycles.push(cycle);
-
-                    //if the event was a stop event, reset the precedent event
-                    if (usageEvents[i].eventType == "Stop"){
-                        previousEvent == null
                     }  else {
-                        previousEvent == usageEvents[i];
+                        //calculate the cycle duration and multiply by the related rate based on the vm type
+                        let cycle = {
+                            duration: (usageEvents[i].eventTime - previousEvent.eventTime)*1000, //convert to seconds
+                            vmType: usageEvents[i].vmType,
+                            charge: (usageEvents[i].eventTime - previousEvent.eventTime)*1000/60*rate //convert to minutes
+                        }
+
+                        //add to the list of cycles for this vm within this time period
+                        usageCycles.push(cycle);
+
+                        //if the event was a stop event, reset the precedent event
+                        if (usageEvents[i].eventType == "Stop"){
+                            previousEvent == null
+                        }  else {
+                            previousEvent == usageEvents[i];
+                        }
                     }
                 }
-            }
-            //create an object to store the vm & the array of usage cycles
-            let vmUsageReport = {
-                vm: vm.vmID,
-                usageCycles: usageCycles
-            }
+                //create an object to store the vm & the array of usage cycles
+                let vmUsageReport = {
+                    vm: vm.vmID,
+                    usageCycles: usageCycles
+                }
 
-            //add this object to the overall usage report for the user
-            customerUsageReport.push(vmUsageReport)
-        })
-
+                //add this object to the overall usage report for the user
+                customerUsageReport.push(vmUsageReport)
+            })
+        });
         resolve(customerUsageReport)
     })
 }
