@@ -63,14 +63,18 @@ monitor.createVM = (Event) => {
         let url = `${rootURL}/${Event.ccID}.json`;
 
         let body = Event;
+        let ccID = Event.ccID;
+
+        console.log("event.ccID: ",Event.ccID);
 
         body.events = {};
 
         //Instantiate the VM's events with a "Create" event.
         body.events["-000000"] = {
-            eventTime: Event.eventTime,
+            eventTime: Date.now(),
             eventType: "Create"
         };
+
 
         //Remove extraneous data properties
         delete body.eventType;
@@ -78,11 +82,14 @@ monitor.createVM = (Event) => {
         delete body.vmID;
         delete body.ccID;
 
+
         postEvent(body, url).then(data => {
+            console.log(data);
+
             let response = {
                 success: true,
                 vmID: data.name, //firebase returns this as a name
-                ccID: Event.ccID
+                ccID: ccID
             };
             resolve(response)
         })
@@ -99,9 +106,12 @@ monitor.event = (Event) => {
         let body = Event;
 
         //Remove extraneous data properties
-        delete body.vmType;
+        //delete body.vmType; need this for usage calculations
         delete body.vmID;
         delete body.ccID;
+
+        body.eventTime = Date.now();
+        body.vmType = null; //leave it as an empty field
 
         postEvent(body, url).then(data => {
             let response = {
@@ -172,108 +182,278 @@ monitor.getVMs = (Event) => {
     })
 };
 
-
-//****** Example customerUsageReport
-// ┌─────────┬───────────────––––––––┬
-// │   vmID  │   usageCycle          │
-// ├─────────┼───────────────────────│
-// │    0    │ [cycle, cycle, cycle] │
-// │    1    │                       │
-// │    2    │                       │
-// │    3    │                       │
-//
-//*** structure of a cycle object */
-// let cycle = {
-//     duration: how long was this cycle in seconds
-//     vmType: during this cycle, which type of vm was used
-//     charge: how much money was charged for this cycle in dollars
-// }
-
-//calculateUsage returns the customerUsage report for the consumer.
+//check vim.js for examples
 monitor.allVMUsage = (Event, startTime, endTime) =>{
     return new Promise((resolve) => {
         monitor.getVMs(Event).then(function(listOfVms){                
             // returns the list of VMs owned by the current user
             console.log(listOfVms);
+
+            console.log("heres start time end times: ", startTime, endTime);
+
             //to record all the vms and their usageCycles
             let usageReport = [];
 
-            listOfVms.forEach(vm => {
+            Object.keys(listOfVms).forEach(key =>{
+
+               var vm = listOfVms[key];
+               console.log("here is each vm: ", vm);
+
+               //find which events are actually within the time frame
+                var usageEvents = [];
+
+                //tracking VMType changes
+                let delta = 0;
+
+                let tempVMType = null;
+                let startingVMType = null;
+
                 vm.events.forEach(e => {
-                    //find which events are actually within the time frame
-                    let usageEvents= [];
-                    if (e.eventTime >= startTime && e.eventTime <= endTime){
-                        usageEvents.push(e)
+
+                    //find the vmType of the first event in the time period
+                    if (startingVMType === null) {
+                        if (e.eventType === "Upgrade") delta++;
+                        else if (e.eventType === "Downgrade") delta--;
+
+                        let initType = vmTypes.findIndex(el => {
+                            return el = vm.initialVMType
+                        });
+
+                        let newType = initType + delta;
+                        if (newType <= 2 && newType >= 0) tempVMType = vmTypes[newType];
+                    }
+
+                    // add to array of events that are within timeframe and find the vmType when the first event in the cycle occurs
+                    if (e.eventTime >= startTime && e.eventTime <= endTime) {
+                        if (startingVMType===null) {startingVMType = tempVMType}
+                        usageEvents.push(e);
                     }
                 });
-                //array for recording all usage cycles for the vm
-                let usageCycles = [];
 
-                //iterate through all the events that occured within this time frame
-                for (i = 0; i < usageEvents.length; i++){
+               console.log ("here are all events within this timeframe: ", usageEvents);
 
-                    //set the fees based on the vmType during which the usage cycle occurred .
-                    let rate = 0;
-                    if (usageEvents[i].vmType === "Large"){
-                        rate = 0.10; //dollars per minute
-                    } else if (usageEvents[i].vmType === "Ultra-Large") {
-                        rate = 0.15;
-                    } else {
-                        rate = 0.5;
-                    }
+               //array for recording all usage cycles for the vm
+               let usageCycles = [];
 
-                    //variable used to record the beginning event of a usage cycle
-                    let previousEvent = null;
+               //variable used to record the previous event of a usage cycle
+                let previousEvent = null;
+                let previousVMType = null;
 
-                    //record the beginning of a cycle
-                    if (previousEvent == null){
-                        if (usageEvents[i].eventType !== "Stop"){
-                            previousEvent = usageEvents[i];
-                        }
-                    }
 
-                    //if the event is a Start
-                    if (usageEvents[i].eventType === "Start"){
-                        previousEvent = usageEvents[i];
-                    }  else {
-                        //calculate the cycle duration and multiply by the related rate based on the vm type
-                        let cycle = {
-                            duration: (usageEvents[i].eventTime - previousEvent.eventTime)*1000, //convert to seconds
-                            vmType: usageEvents[i].vmType,
-                            charge: (usageEvents[i].eventTime - previousEvent.eventTime)*1000/60*rate //convert to minutes
-                        };
+               //iterate through all the events that occured within this time frame
+               usageEvents.forEach(e => {
+                   console.log("event: ",e);
 
-                        //add to the list of cycles for this vm within this time period
-                        usageCycles.push(cycle);
+                   //if the beginning of a cycle is upgrade or downgrade
+                   if (previousEvent === null) {
+                       //if the first event in the measured time period is a stop
+                       if (e.eventType !== "Stop") {
+                           previousEvent = e;
+                           previousVMType = startingVMType;
+                           console.log("first event is: ", previousEvent, "first event VMType: ", previousVMType);
+                       }
+                   }
 
-                        //if the event was a stop event, reset the precedent event
-                        if (usageEvents[i].eventType === "Stop"){
-                            previousEvent = null
-                        }  else {
-                            previousEvent = usageEvents[i];
-                        }
-                    }
-                }
-                //create an object to store the vm & the array of usage cycles
-                let vmUsageReport = {
-                    vm: vm.vmID,
-                    usageCycles: usageCycles
-                };
+                   if (e.eventType === "Create"){
+                       previousEvent = null;
+                   } else if (e.eventType === "Start") {
+                       previousEvent = e;
+                   } else {
+                       let rate = 0;
+                       if (previousVMType === "Large") {
+                           rate = 0.10; //dollars per minute
+                       } else if (previousVMType === "Ultra-Large") {
+                           rate = 0.15;
+                       } else {
+                           rate = 0.5;
+                       }
+                       //calculate the cycle duration and multiply by the related rate based on the vm type
+                       let cycle = {
+                           duration: (e.eventTime - previousEvent.eventTime)/1000, //convert to seconds
+                           vmType: previousVMType,
+                           charge: (e.eventTime - previousEvent.eventTime)/1000/ 60 * rate //convert to minutes
+                       };
 
-                //add this object to the overall usage report for the user
-                usageReport.push(vmUsageReport);
-            });
+
+                       //add to the list of cycles for this vm within this time period
+                       usageCycles.push(cycle);
+
+                       //if the event was a stop event, reset the precedent event
+                       if (e.eventType === "Stop") {
+                           previousEvent = null;
+                           startingVMType = previousVMType;
+                       } else {
+                           // update previous event
+                           previousEvent = e;
+
+                           //update previous vmType
+                           let previousVMTypeIndex = vmTypes.findIndex(el => {
+                               return el === previousVMType;
+                           });
+
+                           let newVMTypeIndex = 0;
+                           if (e.eventType === "Upgrade"){
+                               newVMTypeIndex = previousVMTypeIndex+1;
+                               if (newVMTypeIndex <= 2 && newVMTypeIndex >= 0) {
+                                   previousVMType = vmTypes[newVMTypeIndex];
+                                   console.log("vm upgraded to type: ", previousVMType);
+                               }
+                           } else if (e.eventType === "Downgrade"){
+                               newVMTypeIndex = previousVMTypeIndex-1;
+                               if (newVMTypeIndex <= 2 && newVMTypeIndex >= 0) {
+                                   previousVMType = vmTypes[newVMTypeIndex];
+                                   console.log("vm downgraded to type: ", previousVMType);
+                               }
+                           }
+                       }
+                   }
+               });
+               //create an object to store the vm & the array of usage cycles
+               let vmUsageReport = {
+                   vm: key,
+                   usageCycles: usageCycles
+               };
+
+               //add this object to the overall usage report for the user
+               usageReport.push(vmUsageReport);
+           });
             resolve(usageReport);
-
         });
-    })
+    });
 };
 
 monitor.singleVMUsage = (Event, startTime, endTime) =>{
     return new Promise((resolve) => {
-        monitor.getVMs(Event).then(function(listOfVms){
-            // returns the list of VMs owned by the current user
-            console.log(listOfVms);
+        monitor.getVMs(Event).then(function (listOfVms) {
+            console.log("heres start time end times: ", startTime, endTime);
+
+            let singleVMUsageReport = [];
+
+            Object.keys(listOfVms).forEach(key => {
+
+                if (Event.vmID === key) {
+                    var vm = listOfVms[key];
+                    console.log("matching vm found: ", vm);
+
+                    //find which events are actually within the time frame
+                    var usageEvents = [];
+
+                    //tracking VMType changes
+                    let delta = 0;
+
+                    let tempVMType = null;
+                    let startingVMType = null;
+
+                    vm.events.forEach(e => {
+
+                        //find the vmType of the first event in the time period
+                        if (startingVMType === null) {
+                            if (e.eventType === "Upgrade") delta++;
+                            else if (e.eventType === "Downgrade") delta--;
+
+                            let initType = vmTypes.findIndex(el => {
+                                return el = vm.initialVMType
+                            });
+
+                            let newType = initType + delta;
+                            if (newType <= 2 && newType >= 0) tempVMType = vmTypes[newType];
+                        }
+
+                        // add to array of events that are within timeframe and find the vmType when the first event in the cycle occurs
+                        if (e.eventTime >= startTime && e.eventTime <= endTime) {
+                            if (startingVMType === null) {
+                                startingVMType = tempVMType
+                            }
+                            usageEvents.push(e);
+                        }
+                    });
+
+                    console.log("here are all events within this timeframe: ", usageEvents);
+
+                    //array for recording all usage cycles for the vm
+                    let usageCycles = [];
+
+                    //variable used to record the previous event of a usage cycle
+                    let previousEvent = null;
+                    let previousVMType = null;
+
+
+                    //iterate through all the events that occured within this time frame
+                    usageEvents.forEach(e => {
+                        console.log("event: ", e);
+
+                        //if the beginning of a cycle is upgrade or downgrade
+                        if (previousEvent === null) {
+                            //if the first event in the measured time period is a stop
+                            if (e.eventType !== "Stop") {
+                                previousEvent = e;
+                                previousVMType = startingVMType;
+                                console.log("first event is: ", previousEvent, "first event VMType: ", previousVMType);
+                            }
+                        }
+
+                        if (e.eventType === "Create") {
+                            previousEvent = null;
+                        } else if (e.eventType === "Start") {
+                            previousEvent = e;
+                        } else {
+                            let rate = 0;
+                            if (previousVMType === "Large") {
+                                rate = 0.10; //dollars per minute
+                            } else if (previousVMType === "Ultra-Large") {
+                                rate = 0.15;
+                            } else {
+                                rate = 0.5;
+                            }
+                            //calculate the cycle duration and multiply by the related rate based on the vm type
+                            let cycle = {
+                                duration: (e.eventTime - previousEvent.eventTime) / 1000, //convert to seconds
+                                vmType: previousVMType,
+                                charge: (e.eventTime - previousEvent.eventTime) / 1000 / 60 * rate //convert to minutes
+                            };
+
+
+                            //add to the list of cycles for this vm within this time period
+                            usageCycles.push(cycle);
+
+                            //if the event was a stop event, reset the precedent event
+                            if (e.eventType === "Stop") {
+                                previousEvent = null;
+                                startingVMType = previousVMType;
+                            } else {
+                                // update previous event
+                                previousEvent = e;
+
+                                //update previous vmType
+                                let previousVMTypeIndex = vmTypes.findIndex(el => {
+                                    return el === previousVMType;
+                                });
+
+                                let newVMTypeIndex = 0;
+                                if (e.eventType === "Upgrade") {
+                                    newVMTypeIndex = previousVMTypeIndex + 1;
+                                    if (newVMTypeIndex <= 2 && newVMTypeIndex >= 0) {
+                                        previousVMType = vmTypes[newVMTypeIndex];
+                                        console.log("vm upgraded to type: ", previousVMType);
+                                    }
+                                } else if (e.eventType === "Downgrade") {
+                                    newVMTypeIndex = previousVMTypeIndex - 1;
+                                    if (newVMTypeIndex <= 2 && newVMTypeIndex >= 0) {
+                                        previousVMType = vmTypes[newVMTypeIndex];
+                                        console.log("vm downgraded to type: ", previousVMType);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    //create an object to store the vm & the array of usage cycles
+                    singleVMUsageReport = {
+                        vm: key,
+                        usageCycles: usageCycles
+                    };
+                    resolve(singleVMUsageReport);
+                }
+            });
         });
     });
 };

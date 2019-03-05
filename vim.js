@@ -48,6 +48,7 @@ router.post('/login', (req, res) => {
 router.post('/create', (req, res) => {
   var event = req.body.event;
   monitor.createVM(event).then(function(data){
+    console.log(data);
     res.json(data);
   }); 
 });
@@ -56,6 +57,7 @@ router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
   monitor.event(event).then(function(data){
     res.json(data);
+    console.log(data);
   }); 
 });
 
@@ -67,23 +69,104 @@ router.get('/vm/all', (req, res) => {
   });
 });
 
-router.get('/vm/getUsage', (req, res) => {
+//Route for getting the usage for a single VM of a single user (vmID required)
+//Duration in seconds, charge in dollars ($)
+//Example body to pass for the following route
+/*{
+    "event": {
+    "ccID": "leo2",
+    "vmID": "-L_AOG8nhgnRwEhQ16k7"
+
+},
+    "startTime": "1551748108793",
+    "endTime": "1551754901338"
+}*/
+
+router.get('/vm/usage', (req, res) => {
     var event = req.body.event;
     var startTime = req.body.startTime;
     var endTime = req.body.endTime;
     monitor.singleVMUsage(event, startTime, endTime).then(function(data){
         console.log(data);
+        res.json(data);
     });
 });
+//Sample Result Data:
+// {
+//     "vm": "-L_AOG8nhgnRwEhQ16k7",
+//     "usageCycles": [
+//     {
+//         "duration": 28.346,
+//         "vmType": "Basic",
+//         "charge": 0.23621666666666666
+//     },
+//     {
+//         "duration": 9.443,
+//         "vmType": "Large",
+//         "charge": 0.015738333333333333
+//     },
+//     {
+//         "duration": 3.762,
+//         "vmType": "Ultra-Large",
+//         "charge": 0.009405
+//     }
+// ]
+// }
 
-router.get('/totalVMUsage', (req, res) => {
+//Route for getting the usage for all VMs of a single user (vmID not needed for all VMs)
+//Duration in seconds, charge in dollars ($)
+//Example body to pass for the following route
+// {
+//     "event": {
+//     "ccID": "leo2",
+// },
+//     "startTime": "1551748108793",
+//     "endTime": "1551754901338"
+// }
+router.get('/vm/totalUsage', (req, res) => {
   var event = req.body.event;
   var startTime = req.body.startTime;
   var endTime = req.body.endTime;
   monitor.allVMUsage(event, startTime, endTime).then(function(data){
     console.log(data);
+    res.json(data);
   });
 });
+//Sample result data:
+// [
+//     {
+//         "vm": "-L_AOCphdmnqYnJQOTC-",
+//         "usageCycles": []
+//     },
+//     {
+//         "vm": "-L_AOFmFEKgRbpC_sCHe",
+//         "usageCycles": []
+//     },
+//     {
+//         "vm": "-L_AOG8nhgnRwEhQ16k7",
+//         "usageCycles": [
+//             {
+//                 "duration": 28.346,
+//                 "vmType": "Basic",
+//                 "charge": 0.23621666666666666
+//             },
+//             {
+//                 "duration": 9.443,
+//                 "vmType": "Large",
+//                 "charge": 0.015738333333333333
+//             },
+//             {
+//                 "duration": 3.762,
+//                 "vmType": "Ultra-Large",
+//                 "charge": 0.009405
+//             }
+//         ]
+//     },
+//     {
+//         "vm": "-L_AOGyMIwQ0bpvf_MOz",
+//         "usageCycles": []
+//     }
+// ]
 
 
 app.use('/', router);
