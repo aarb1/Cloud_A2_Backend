@@ -67,6 +67,13 @@ router.get('/vm/all', (req, res) => {
   });
 });
 
+router.get('/calculateUsage', (req, res) => {
+  var event = req.body.event;
+  monitor.calculateUsage(event).then(function(data){
+    console.log(data);
+  });
+});
+
 app.use('/', router);
 
 app.listen(port ,function(){
