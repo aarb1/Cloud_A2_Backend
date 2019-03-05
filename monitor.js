@@ -190,7 +190,7 @@ monitor.getVMs = (Event) => {
 // }
 
 //calculateUsage returns the customerUsage report for the consumer.
-monitor.calculateUsage = (Event, startTime, endTime) =>{
+monitor.allVMUsage = (Event, startTime, endTime) =>{
     return new Promise((resolve) => {
         monitor.getVMs(Event).then(function(listOfVms){                
             // returns the list of VMs owned by the current user
@@ -267,3 +267,13 @@ monitor.calculateUsage = (Event, startTime, endTime) =>{
         });
     })
 }
+
+monitor.singleVMUsage = (Event, startTime, endTime) =>{
+    return new Promise((resolve) => {
+        monitor.getVMs(Event).then(function(listOfVms){
+            // returns the list of VMs owned by the current user
+            console.log(listOfVms);
+        });
+    });
+}
+

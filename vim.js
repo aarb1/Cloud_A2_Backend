@@ -67,12 +67,24 @@ router.get('/vm/all', (req, res) => {
   });
 });
 
-router.get('/calculateUsage', (req, res) => {
+router.get('/vm/getUsage', (req, res) => {
+    var event = req.body.event;
+    var startTime = req.body.startTime;
+    var endTime = req.body.endTime;
+    monitor.singleVMUsage(event, startTime, endTime).then(function(data){
+        console.log(data);
+    });
+});
+
+router.get('/totalVMUsage', (req, res) => {
   var event = req.body.event;
-  monitor.calculateUsage(event).then(function(data){
+  var startTime = req.body.startTime;
+  var endTime = req.body.endTime;
+  monitor.allVMUsage(event, startTime, endTime).then(function(data){
     console.log(data);
   });
 });
+
 
 app.use('/', router);
 
