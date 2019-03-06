@@ -129,7 +129,6 @@ router.get('/vm/usage', (req, res) => {
 //     "endTime": "1551754901338"
 // }
 router.get('/vm/totalUsage', (req, res) => {
-  console.log(req.body.startTime);
   var event = req.body.event;
   var startTime = 0;
   var endTime = 0
