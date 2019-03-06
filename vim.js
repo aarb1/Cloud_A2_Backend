@@ -91,7 +91,6 @@ router.get('/vm/usage', (req, res) => {
       startTime = req.body.startTime;
       endTime = req.body.endTime;
     }
-  console.log(startTime, endTime);
     monitor.singleVMUsage(event, startTime, endTime).then(function(data){
         console.log(data);
         res.json(data);
@@ -139,7 +138,6 @@ router.get('/vm/totalUsage', (req, res) => {
     startTime = req.body.startTime;
     endTime = req.body.endTime;
   }
-  console.log(startTime, endTime);
   monitor.allVMUsage(event, startTime, endTime).then(function(data){
     console.log(data);
     res.json(data);
