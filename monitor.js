@@ -25,15 +25,15 @@ const vmTypes = ["Basic", "Large", "Ultra-Large"];
 
 const monitor = module.exports = {};
 
-smartFetch = (url, arguments) =>{
-    return new Promise((resolve, reject) =>{
+smartFetch = (url, arguments) => {
+    return new Promise((resolve, reject) => {
         fetch(url, arguments)
             .then(stream => {
-                stream.json().then(data =>{
-                    resolve (data)
+                stream.json().then(data => {
+                    resolve(data)
                 })
             })
-            .catch(e =>{
+            .catch(e => {
                 reject(e)
             })
     })
@@ -41,15 +41,15 @@ smartFetch = (url, arguments) =>{
 
 let rootURL = "https://clouda2backend.firebaseio.com";
 
-postEvent = (postData, url) =>{
-    return new Promise ((resolve) =>{
+postEvent = (postData, url) => {
+    return new Promise((resolve) => {
         let arguments = {
             method: "POST",
             body: JSON.stringify(postData)
-        };
-        smartFetch(url, arguments).then(data =>{
+        }
+        smartFetch(url, arguments).then(data => {
             resolve(data)
-        }).catch(e =>{
+        }).catch(e => {
             console.log(e)
         })
     })
@@ -59,6 +59,9 @@ postEvent = (postData, url) =>{
  * Creates a VM for the specified user and returns {success, vmID, and ccID}
  */
 monitor.createVM = (Event) => {
+
+    if (Event.ccID === "auth") return //auth is a restricted username because that's where we store the passwords
+
     return new Promise((resolve) => {
         let url = `${rootURL}/${Event.ccID}.json`;
 
@@ -101,6 +104,9 @@ monitor.createVM = (Event) => {
  * Adds the event to the list of events for the specified VM belonging to the specified user
  */
 monitor.event = (Event) => {
+
+    if (Event.ccID === "auth") return //auth is a restricted username because that's where we store the passwords
+
     return new Promise((resolve) => {
         let url = `${rootURL}/${Event.ccID}/${Event.vmID}/events.json`;
         let body = Event;
@@ -128,12 +134,13 @@ monitor.event = (Event) => {
 // as well as the list of events that have ocurred
 
 //****** Example list of vms
-// ┌──────────────────────┬───────────────────────────────────────────────────┬─────────┬───────────────┐
-// │       (index)        │                      events                       │ vmType  │ initialVMType │
-// ├──────────────────────┼───────────────────────────────────────────────────┼─────────┼───────────────┤
-// │ -LZn3FahneHK2RFWVzVw │ [ [Object], [Object], [Object], ... 1 more item ] │ 'Large' │    'Basic'    │
-// │ -LZn8eJCIvVZ1Vbe2kO_ │                   [ [Object] ]                    │ 'Basic' │    'Basic'    │
-// └──────────────────────┴───────────────────────────────────────────────────┴─────────┴───────────────┘
+// ┌──────────────────────┬──────────────────────────────────┬─────────┬───────────────┬─────────────┐
+// │       (index)        │              events              │ vmType  │ initialVMType │    state    │
+// ├──────────────────────┼──────────────────────────────────┼─────────┼───────────────┼─────────────┤
+// │ -L_JZH1Vf1Ud7yXyBZDs │ [ [Object], [Object], [Object] ] │ 'Large' │    'Basic'    │  'Running'  │
+// │ -L_JZVN01QD5TzhfBZeU │           [ [Object] ]           │ 'Basic' │    'Basic'    │ 'Suspended' │
+// │ -L_JZcE1obHystr0teVB │           [ [Object] ]           │ 'Basic' │    'Basic'    │ 'Suspended' │
+// └──────────────────────┴──────────────────────────────────┴─────────┴───────────────┴─────────────┘
 
 //****** Example list of events  ->  getVMS.then(result["-LZn3FahneHK2RFWVzVw"].events))
 // ┌─────────┬───────────────┬─────────────┐
@@ -150,33 +157,58 @@ monitor.getVMs = (Event) => {
         let url = `${rootURL}/${Event.ccID}.json`;
         let arguments = {
             method: "GET",
-        };
-        smartFetch(url, arguments).then(data =>{
-            if (data !== null){
+        }
+        smartFetch(url, arguments).then(data => {
+            if (data !== null) {
 
-                Object.keys(data).forEach(key =>{
+                Object.keys(data).forEach(key => {
+
+                    let vm = data[key]
+                    vm.initialVMType = vm.vmType
+
                     //Flatten events into arrays for eacn virtual machine
-                    let vm = data[key];
-                    if (vm.hasOwnProperty("events")){
+                    if (vm.hasOwnProperty("events")) {
                         vm.events = Object.values(vm.events)
+
+                        //Calculate current VM Type
+                        let initType = vmTypes.findIndex(el => {
+                            return el = vm.vmType
+                        })
+                        let delta = 0
+                        vm.events.forEach(e => {
+                            if (e.eventType === "Upgrade") delta++
+                            else if (e.eventType === "Downgrade") delta--
+                        })
+
+                        let newType = initType + delta
+                        if (newType <= 2 && newType >= 0) vm.vmType = vmTypes[newType]
+
+
+                        //Get current status
+                        let state = "Suspended" //After a create, the default is suspended
+
+                        //Find current status by finding the most recent start, stop or delete event
+                        
+                        for (let i = (vm.events.length - 1); i >= 0; i--) {
+                            if (vm.events[i].eventType === "Stop") {
+                                state = "Suspended"
+                                break
+                            } else if (vm.events[i].eventType === "Start") {
+                                state = "Running"
+                                break
+                            } else if (vm.events[i].eventType === "Delete") {
+                                state = "Deleted"
+                                break
+                            }
+                        }
+
+                        vm.state = state
+
                     }
 
-                    vm.initialVMType = vm.vmType;
-                    //Calculate current VM Type
-                    let initType = vmTypes.findIndex(el =>{
-                        return el = vm.vmType
-                    });
-                    let delta = 0;
-                    vm.events.forEach(e => {
-                        if (e.eventType === "Upgrade") delta++;
-                        else if (e.eventType === "Downgrade") delta--
-                    });
-
-                    let newType = initType + delta;
-                    if (newType <=2 && newType >= 0) vm.vmType = vmTypes[newType]
-                    
-                })       
+                })
             }
+            
             resolve(data)
         })
     })
@@ -465,4 +497,3 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
         });
     });
 };
-
