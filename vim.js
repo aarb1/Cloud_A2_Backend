@@ -181,17 +181,28 @@ app.listen(port ,function(){
 //   console.log(`Server running at http://${hostname}:${port}/`);
 // });
 
-// let Event = {
-//   eventType: "Create",
+let Event = {
+  eventType: "Upgrade",
+  vmType: "Basic",
+  eventTime: Date.now(),
+  vmID: "-L_JZH1Vf1Ud7yXyBZDs",
+  ccID: "12312312"
+}
+
+// let Event2 = {
+//   eventType: "Start",
 //   vmType: "Basic",
 //   eventTime: Date.now(),
 //   vmID: "-LZn3FahneHK2RFWVzVw",
 //   ccID: "12312312"
 // }
 
-// monitor.getVMs(Event)
 // monitor.event(Event)
 
-// auth.login("12312312", "password")
+monitor.getVMs(Event).then(result => console.log(result))
+// monitor.event(Event)
+
+auth.login("12312312", "password")
 // auth.login("12312312", "dd")
 // auth.login("111", "dd")
+// auth.createUser("12312312", "password")
