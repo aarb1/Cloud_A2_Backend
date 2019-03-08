@@ -1,11 +1,19 @@
 const monitor = require('./monitor')
 const auth = require('./auth')
-var express = require('express');        
-var app = express();                 
+var express = require('express');
+var app = express();
 var bodyParser = require('body-parser');
 var router = express.Router();
+var cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors({
+  'allowedHeaders': ['sessionId', 'Content-Type'],
+  'exposedHeaders': ['sessionId'],
+  'origin': '*',
+  'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  'preflightContinue': false
+}))
 /**
  * OVERVIEW
  * 
@@ -25,46 +33,50 @@ app.use(bodyParser.json());
 const http = require("http");
 const port = process.env.PORT || 5000;
 
-router.get('/', function(req, res) {
-  res.json({ message: 'Hello World!' });   
+router.get('/', function (req, res) {
+  res.json({ message: 'Hello World!' });
 });
 
 router.post('/createUser', (req, res) => {
   var username = req.query.username;
   var password = req.query.password;
-  auth.createUser(username, password).then(function(data) {
+  auth.createUser(username, password).then(function (data) {
     res.json(data);
-  });  
+  });
 });
 
 router.post('/login', (req, res) => {
   var username = req.query.username;
   var password = req.query.password;
-  auth.login(username, password).then(function(data) {
+  auth.login(username, password).then(function (data) {
     res.json(data);
-  });  
+  });
 });
 
 router.post('/create', (req, res) => {
   var event = req.body.event;
-  monitor.createVM(event).then(function(data){
+  monitor.createVM(event).then(function (data) {
     console.log(data);
     res.json(data);
-  }); 
+  });
 });
 
 router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
-  monitor.event(event).then(function(data){
+  monitor.event(event).then(function (data) {
     res.json(data);
     console.log(data);
-  }); 
+  });
 });
 
 router.get('/vm/all', (req, res) => {
-  var event = req.body.event;
+  console.log (req.query);
+  var event = {
+    ccID: req.query.ccID
+  };
   console.log(event);
-  monitor.getVMs(event).then(function(data){
+  monitor.getVMs(event).then(function (data) {
+    console.log("sending back data");
     res.json(data);
   });
 });
@@ -83,18 +95,18 @@ router.get('/vm/all', (req, res) => {
 }*/
 
 router.get('/vm/usage', (req, res) => {
-    var event = req.body.event;
-    var startTime = 0;
-    var endTime = 0
-  
-    if (req.body.startTime && req.body.endTime){
-      startTime = req.body.startTime;
-      endTime = req.body.endTime;
-    }
-    monitor.singleVMUsage(event, startTime, endTime).then(function(data){
-        console.log(data);
-        res.json(data);
-    });
+  var event = req.body.event;
+  var startTime = 0;
+  var endTime = 0
+
+  if (req.body.startTime && req.body.endTime) {
+    startTime = req.body.startTime;
+    endTime = req.body.endTime;
+  }
+  monitor.singleVMUsage(event, startTime, endTime).then(function (data) {
+    console.log(data);
+    res.json(data);
+  });
 });
 //Sample Result Data:
 // {
@@ -133,11 +145,11 @@ router.get('/vm/totalUsage', (req, res) => {
   var startTime = 0;
   var endTime = 0
 
-  if (req.body.startTime && req.body.endTime){
+  if (req.body.startTime && req.body.endTime) {
     startTime = req.body.startTime;
     endTime = req.body.endTime;
   }
-  monitor.allVMUsage(event, startTime, endTime).then(function(data){
+  monitor.allVMUsage(event, startTime, endTime).then(function (data) {
     console.log(data);
     res.json(data);
   });
@@ -181,8 +193,8 @@ router.get('/vm/totalUsage', (req, res) => {
 
 app.use('/', router);
 
-app.listen(port ,function(){
-  console.log("up and running on port "+ port);
+app.listen(port, function () {
+  console.log("up and running on port " + port);
 });
 
 
