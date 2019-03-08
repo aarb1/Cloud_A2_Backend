@@ -218,10 +218,6 @@ monitor.getVMs = (Event) => {
 monitor.allVMUsage = (Event, startTime, endTime) =>{
     return new Promise((resolve) => {
         monitor.getVMs(Event).then(function(listOfVms){                
-            // returns the list of VMs owned by the current user
-            console.log(listOfVms);
-
-            console.log("heres start time end times: ", startTime, endTime);
 
             //to record all the vms and their usageCycles
             let usageReport = [];
@@ -229,7 +225,7 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
             Object.keys(listOfVms).forEach(key =>{
 
                var vm = listOfVms[key];
-               console.log("here is each vm: ", vm);
+               console.log("current vm: ", vm);
 
                //find which events are actually within the time frame
                 var usageEvents = [];
@@ -255,9 +251,15 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
                         if (newType <= 2 && newType >= 0) tempVMType = vmTypes[newType];
                     }
 
-                    // add to array of events that are within timeframe and find the vmType when the first event in the cycle occurs
-                    if (e.eventTime >= startTime && e.eventTime <= endTime) {
-                        if (startingVMType===null) {startingVMType = tempVMType}
+                    //add to array of events that are within timeframe and find the vmType when the first event in the cycle occurs
+                    //if no time frame specified, include all events 
+                    if (startTime && endTime){
+                        if (e.eventTime >= startTime && e.eventTime <= endTime) {
+                            if (startingVMType===null) {startingVMType = tempVMType}
+                            usageEvents.push(e);
+                        }
+                    } else {
+                        if (startingVMType===null) {startingVMType = vm.initialVMType}
                         usageEvents.push(e);
                     }
                 });
@@ -282,7 +284,6 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
                        if (e.eventType !== "Stop") {
                            previousEvent = e;
                            previousVMType = startingVMType;
-                           console.log("first event is: ", previousEvent, "first event VMType: ", previousVMType);
                        }
                    }
 
@@ -303,7 +304,7 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
                        let cycle = {
                            duration: (e.eventTime - previousEvent.eventTime)/1000, //convert to seconds
                            vmType: previousVMType,
-                           charge: (e.eventTime - previousEvent.eventTime)/1000/ 60 * rate //convert to minutes
+                           charge: (e.eventTime - previousEvent.eventTime)/1000/ 60 * rate //convert to minutes then multiply by rate
                        };
 
 
@@ -360,9 +361,11 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
             console.log("heres start time end times: ", startTime, endTime);
 
             let singleVMUsageReport = [];
+            console.log(listOfVms);
 
             Object.keys(listOfVms).forEach(key => {
-
+                console.log ("key: ",key);
+                console.log (Event.vmID);
                 if (Event.vmID === key) {
                     var vm = listOfVms[key];
                     console.log("matching vm found: ", vm);
@@ -377,7 +380,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                     let startingVMType = null;
 
                     vm.events.forEach(e => {
-
+                        
                         //find the vmType of the first event in the time period
                         if (startingVMType === null) {
                             if (e.eventType === "Upgrade") delta++;
@@ -392,10 +395,16 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                         }
 
                         // add to array of events that are within timeframe and find the vmType when the first event in the cycle occurs
-                        if (e.eventTime >= startTime && e.eventTime <= endTime) {
-                            if (startingVMType === null) {
-                                startingVMType = tempVMType
+                        //if no time frame specified, include all events 
+                        if (startTime && endTime){
+                            if (e.eventTime >= startTime && e.eventTime <= endTime) {
+                                if (startingVMType === null) {
+                                    startingVMType = tempVMType;
+                                }
+                                usageEvents.push(e);
                             }
+                        } else {
+                            if (startingVMType===null) {startingVMType = vm.initialVMType}
                             usageEvents.push(e);
                         }
                     });
@@ -420,7 +429,6 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                             if (e.eventType !== "Stop") {
                                 previousEvent = e;
                                 previousVMType = startingVMType;
-                                console.log("first event is: ", previousEvent, "first event VMType: ", previousVMType);
                             }
                         }
 
@@ -441,7 +449,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                             let cycle = {
                                 duration: (e.eventTime - previousEvent.eventTime) / 1000, //convert to seconds
                                 vmType: previousVMType,
-                                charge: (e.eventTime - previousEvent.eventTime) / 1000 / 60 * rate //convert to minutes
+                                charge: (e.eventTime - previousEvent.eventTime) / 1000 / 60 * rate //convert to minutes then multiply by rate
                             };
 
 
