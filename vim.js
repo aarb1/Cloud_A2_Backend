@@ -70,14 +70,12 @@ router.post('/launchEvent', (req, res) => {
 });
 
 router.get('/vm/all', (req, res) => {
-  console.log (req.query);
   var event = {
     ccID: req.query.ccID
   };
-  console.log(event);
   monitor.getVMs(event).then(function (data) {
-    console.log("sending back data");
     res.json(data);
+    console.log(data);
   });
 });
 

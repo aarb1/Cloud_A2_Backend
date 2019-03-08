@@ -110,7 +110,6 @@ monitor.event = (Event) => {
     return new Promise((resolve) => {
         let url = `${rootURL}/${Event.ccID}/${Event.vmID}/events.json`;
         let body = Event;
-
         //Remove extraneous data properties
         //delete body.vmType; need this for usage calculations
         delete body.vmID;
