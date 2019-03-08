@@ -93,17 +93,26 @@ router.get('/vm/all', (req, res) => {
 }*/
 
 router.get('/vm/usage', (req, res) => {
-  var event = req.body.event;
   var startTime = 0;
   var endTime = 0
 
-  if (req.body.startTime && req.body.endTime) {
-    startTime = req.body.startTime;
-    endTime = req.body.endTime;
+  var event = {
+    ccID: req.query.ccID,
+    vmID: req.query.vmID,
+    startTime: req.query.startTime,
+    endTime: req.query.endTime
+  };
+  console.log(event);
+  if (event.startTime && event.endTime) {
+    startTime = event.startTime;
+    endTime = event.endTime;
   }
   monitor.singleVMUsage(event, startTime, endTime).then(function (data) {
-    console.log(data);
+    console.log("--------------------------------------------------");
     res.json(data);
+    console.log(data);
+    console.log("--------------------------------------------------");
+
   });
 });
 //Sample Result Data:
@@ -139,17 +148,23 @@ router.get('/vm/usage', (req, res) => {
 //     "endTime": "1551754901338"
 // }
 router.get('/vm/totalUsage', (req, res) => {
-  var event = req.body.event;
   var startTime = 0;
   var endTime = 0
+  var event = {
+    ccID: req.query.ccID,
+    startTime: req.query.startTime,
+    endTime: req.query.endTime
+  };
 
-  if (req.body.startTime && req.body.endTime) {
-    startTime = req.body.startTime;
-    endTime = req.body.endTime;
+  if (event.startTime && event.endTime) {
+    startTime = req.query.startTime;
+    endTime = req.query.endTime;
   }
   monitor.allVMUsage(event, startTime, endTime).then(function (data) {
-    console.log(data);
+    console.log("--------------------------------------------------");
     res.json(data);
+    console.log(data);
+    console.log("--------------------------------------------------");
   });
 });
 //Sample result data:
