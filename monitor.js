@@ -172,7 +172,7 @@ monitor.getVMs = (Event) => {
 
                         //Calculate current VM Type
                         let initType = vmTypes.findIndex(el => {
-                            return el = vm.vmType
+                            return el == vm.vmType
                         })
                         let delta = 0
                         vm.events.forEach(e => {
