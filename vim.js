@@ -46,8 +46,8 @@ router.post('/createUser', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-  var username = req.query.username;
-  var password = req.query.password;
+  var username = req.body.username;
+  var password = req.body.password;
   auth.login(username, password).then(function (data) {
     res.json(data);
   });
