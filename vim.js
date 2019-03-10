@@ -106,17 +106,13 @@ router.get('/vm/usage', (req, res) => {
     startTime: req.query.startTime,
     endTime: req.query.endTime
   };
-  console.log(event);
+  
   if (event.startTime && event.endTime) {
     startTime = event.startTime;
     endTime = event.endTime;
   }
   monitor.singleVMUsage(event, startTime, endTime).then(function (data) {
-    console.log("--------------------------------------------------");
     res.json(data);
-    console.log(data);
-    console.log("--------------------------------------------------");
-
   });
 });
 //Sample Result Data:
@@ -165,10 +161,7 @@ router.get('/vm/totalUsage', (req, res) => {
     endTime = req.query.endTime;
   }
   monitor.allVMUsage(event, startTime, endTime).then(function (data) {
-    console.log("--------------------------------------------------");
     res.json(data);
-    console.log(data);
-    console.log("--------------------------------------------------");
   });
 });
 //Sample result data:
