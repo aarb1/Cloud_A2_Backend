@@ -54,6 +54,7 @@ router.post('/login', (req, res) => {
   });
 });
 
+//create VM
 router.post('/create', (req, res) => {
   var event = req.body.event;
   monitor.createVM(event).then(function (data) {
@@ -62,6 +63,7 @@ router.post('/create', (req, res) => {
   });
 });
 
+//route to launch event
 router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
   console.log(event);
@@ -71,6 +73,7 @@ router.post('/launchEvent', (req, res) => {
   });
 });
 
+//get all the VMs
 router.get('/vm/all', (req, res) => {
   var event = {
     ccID: req.query.ccID
@@ -93,7 +96,6 @@ router.get('/vm/all', (req, res) => {
     "startTime": "1551748108793",
     "endTime": "1551754901338"
 }*/
-
 router.get('/vm/usage', (req, res) => {
   var startTime = 0;
   var endTime = 0
@@ -239,6 +241,7 @@ let Event = {
 monitor.getVMs(Event).then(result => console.log(result))
 // monitor.event(Event)
 
+//logs user in
 auth.login("12312312", "password")
 // auth.login("12312312", "dd")
 // auth.login("111", "dd")
