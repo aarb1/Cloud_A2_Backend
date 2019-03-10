@@ -46,6 +46,15 @@ router.post('/createUser', (req, res) => {
   });
 });
 
+//create VM
+router.post('/create', (req, res) => {
+  var event = req.body.event;
+  monitor.createVM(event).then(function (data) {
+    console.log(data);
+    res.json(data);
+  });
+});
+
 router.post('/login', (req, res) => {
   var username = req.body.username;
   var password = req.body.password;
@@ -54,12 +63,15 @@ router.post('/login', (req, res) => {
   });
 });
 
-//create VM
-router.post('/create', (req, res) => {
-  var event = req.body.event;
-  monitor.createVM(event).then(function (data) {
-    console.log(data);
+
+//get all the VMs
+router.get('/vm/all', (req, res) => {
+  var event = {
+    ccID: req.query.ccID
+  };
+  monitor.getVMs(event).then(function (data) {
     res.json(data);
+    console.log(data);
   });
 });
 
@@ -73,16 +85,7 @@ router.post('/launchEvent', (req, res) => {
   });
 });
 
-//get all the VMs
-router.get('/vm/all', (req, res) => {
-  var event = {
-    ccID: req.query.ccID
-  };
-  monitor.getVMs(event).then(function (data) {
-    res.json(data);
-    console.log(data);
-  });
-});
+
 
 //Route for getting the usage for a single VM of a single user (vmID required)
 //Duration in seconds, charge in dollars ($)
