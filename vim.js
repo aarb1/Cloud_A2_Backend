@@ -38,6 +38,19 @@ router.get('/', function (req, res) {
   res.json({ message: 'Hello World!' });
 });
 
+
+
+
+//get all the VMs
+router.get('/vm/all', (req, res) => {
+  var event = {
+    ccID: req.query.ccID
+  };
+  monitor.getVMs(event).then(function (data) {
+    res.json(data);
+  });
+});
+
 router.post('/createUser', (req, res) => {
   var username = req.query.username;
   var password = req.query.password;
@@ -50,7 +63,6 @@ router.post('/createUser', (req, res) => {
 router.post('/create', (req, res) => {
   var event = req.body.event;
   monitor.createVM(event).then(function (data) {
-    console.log(data);
     res.json(data);
   });
 });
@@ -63,25 +75,11 @@ router.post('/login', (req, res) => {
   });
 });
 
-
-//get all the VMs
-router.get('/vm/all', (req, res) => {
-  var event = {
-    ccID: req.query.ccID
-  };
-  monitor.getVMs(event).then(function (data) {
-    res.json(data);
-    console.log(data);
-  });
-});
-
 //route to launch event
 router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
-  console.log(event);
   monitor.event(event).then(function (data) {
     res.json(data);
-    console.log(data);
   });
 });
 
