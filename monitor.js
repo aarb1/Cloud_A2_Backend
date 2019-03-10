@@ -110,6 +110,7 @@ monitor.event = (Event) => {
     return new Promise((resolve) => {
         let url = `${rootURL}/${Event.ccID}/${Event.vmID}/events.json`;
         let body = Event;
+
         //Remove extraneous data properties
         //delete body.vmType; need this for usage calculations
         delete body.vmID;
@@ -171,7 +172,7 @@ monitor.getVMs = (Event) => {
 
                         //Calculate current VM Type
                         let initType = vmTypes.findIndex(el => {
-                            return el == vm.vmType
+                            return el = vm.vmType
                         })
                         let delta = 0
                         vm.events.forEach(e => {
@@ -360,15 +361,17 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
             console.log("heres start time end times: ", startTime, endTime);
 
             let singleVMUsageReport = [];
+            let vm;
             console.log(listOfVms);
 
             Object.keys(listOfVms).forEach(key => {
                 console.log ("key: ",key);
                 console.log (Event.vmID);
                 if (Event.vmID === key) {
-                    var vm = listOfVms[key];
+                    vm = listOfVms[key];
                     console.log("matching vm found: ", vm);
-
+                };
+            });
                     //find which events are actually within the time frame
                     var usageEvents = [];
 
@@ -380,7 +383,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
 
                     vm.events.forEach(e => {
                         
-                        //find the vmType of the first event in the time period
+                        //tracks vmTypes until first event within timeframe is reached
                         if (startingVMType === null) {
                             if (e.eventType === "Upgrade") delta++;
                             else if (e.eventType === "Downgrade") delta--;
@@ -491,8 +494,6 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                         usageCycles: usageCycles
                     };
                     resolve(singleVMUsageReport);
-                }
-            });
         });
     });
 };
