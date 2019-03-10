@@ -7,6 +7,8 @@ var router = express.Router();
 var cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+//CORS to allow acess to backend from frontend
 app.use(cors({
   'allowedHeaders': ['sessionId', 'Content-Type'],
   'exposedHeaders': ['sessionId'],
@@ -30,7 +32,6 @@ app.use(cors({
  * 
  */
 
-const http = require("http");
 const port = process.env.PORT || 5000;
 
 router.get('/', function (req, res) {
