@@ -111,6 +111,10 @@ monitor.event = (Event) => {
         let url = `${rootURL}/${Event.ccID}/${Event.vmID}/events.json`;
         let body = Event;
 
+        vmID = Event.vmID;
+        ccID = Event.ccID;
+
+
         //Remove extraneous data properties
         //delete body.vmType; need this for usage calculations
         delete body.vmID;
@@ -122,8 +126,8 @@ monitor.event = (Event) => {
         postEvent(body, url).then(data => {
             let response = {
                 success: true,
-                vmID: Event.vmID, //firebase returns this as a name
-                ccID: Event.ccID
+                vmID: vmID, 
+                ccID: ccID
             };
             resolve(response)
         })
@@ -280,7 +284,6 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
 
                    //if the beginning of a cycle is upgrade or downgrade
                    if (previousEvent === null) {
-                       //if the first event in the measured time period is a stop
                        if (e.eventType !== "Stop") {
                            previousEvent = e;
                            previousVMType = startingVMType;
@@ -292,24 +295,24 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
                    } else if (e.eventType === "Start") {
                        previousEvent = e;
                    } else {
-                       let rate = 0;
-                       if (previousVMType === "Large") {
-                           rate = 0.10; //dollars per minute
-                       } else if (previousVMType === "Ultra-Large") {
-                           rate = 0.15;
-                       } else {
-                           rate = 0.5;
-                       }
-                       //calculate the cycle duration and multiply by the related rate based on the vm type
-                       let cycle = {
-                           duration: (e.eventTime - previousEvent.eventTime)/1000, //convert to seconds
-                           vmType: previousVMType,
-                           charge: (e.eventTime - previousEvent.eventTime)/1000/ 60 * rate //convert to minutes then multiply by rate
-                       };
-
-
-                       //add to the list of cycles for this vm within this time period
-                       usageCycles.push(cycle);
+                        if (previousEvent!== null){
+                            let rate = 0;
+                            if (previousVMType === "Large") {
+                                rate = 0.10; //dollars per minute
+                            } else if (previousVMType === "Ultra-Large") {
+                                rate = 0.15;
+                            } else {
+                                rate = 0.5;
+                            }
+                            //calculate the cycle duration and multiply by the related rate based on the vm type
+                            let cycle = {
+                                duration: (e.eventTime - previousEvent.eventTime)/1000, //convert to seconds
+                                vmType: previousVMType,
+                                charge: (e.eventTime - previousEvent.eventTime)/1000/ 60 * rate //convert to minutes then multiply by rate
+                            };
+                            //add to the list of cycles for this vm within this time period
+                            if (cycle.duration!==0) usageCycles.push(cycle);
+                        }
 
                        //if the event was a stop event, reset the precedent event
                        if (e.eventType === "Stop") {
@@ -456,7 +459,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
 
 
                             //add to the list of cycles for this vm within this time period
-                            usageCycles.push(cycle);
+                            if (cycle.duration !==0) usageCycles.push(cycle);
 
                             //if the event was a stop event, reset the precedent event
                             if (e.eventType === "Stop") {
@@ -490,7 +493,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                     });
                     //create an object to store the vm & the array of usage cycles
                     singleVMUsageReport = {
-                        vm: key,
+                        vm: Event.vmID,
                         usageCycles: usageCycles
                     };
                     resolve(singleVMUsageReport);

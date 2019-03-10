@@ -63,6 +63,7 @@ router.post('/create', (req, res) => {
 
 router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
+  console.log(event);
   monitor.event(event).then(function (data) {
     res.json(data);
     console.log(data);
