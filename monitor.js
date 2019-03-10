@@ -172,7 +172,7 @@ monitor.getVMs = (Event) => {
 
                         //Calculate current VM Type
                         let initType = vmTypes.findIndex(el => {
-                            return el = vm.vmType
+                            return el === vm.vmType
                         })
                         let delta = 0
                         vm.events.forEach(e => {
@@ -244,7 +244,7 @@ monitor.allVMUsage = (Event, startTime, endTime) =>{
                         else if (e.eventType === "Downgrade") delta--;
 
                         let initType = vmTypes.findIndex(el => {
-                            return el = vm.initialVMType
+                            return el === vm.initialVMType
                         });
 
                         let newType = initType + delta;
@@ -389,7 +389,7 @@ monitor.singleVMUsage = (Event, startTime, endTime) =>{
                             else if (e.eventType === "Downgrade") delta--;
 
                             let initType = vmTypes.findIndex(el => {
-                                return el = vm.initialVMType
+                                return el === vm.initialVMType
                             });
 
                             let newType = initType + delta;
