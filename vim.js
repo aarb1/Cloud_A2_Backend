@@ -214,13 +214,13 @@ app.listen(port, function () {
 //   console.log(`Server running at http://${hostname}:${port}/`);
 // });
 
-let Event = {
-  eventType: "Upgrade",
-  vmType: "Basic",
-  eventTime: Date.now(),
-  vmID: "-L_JZH1Vf1Ud7yXyBZDs",
-  ccID: "patrick"
-}
+// let Event = {
+//   eventType: "Upgrade",
+//   vmType: "Basic",
+//   eventTime: Date.now(),
+//   vmID: "-L_JZH1Vf1Ud7yXyBZDs",
+//   ccID: "patrick"
+// }
 
 // let Event2 = {
 //   eventType: "Start",
@@ -232,11 +232,11 @@ let Event = {
 
 // monitor.event(Event)
 
-monitor.getVMs(Event).then(result => console.log(result))
+// monitor.getVMs(Event).then(result => console.log(result))
 // monitor.event(Event)
 
 //logs user in
-auth.login("12312312", "password")
+// auth.login("12312312", "password")
 // auth.login("12312312", "dd")
 // auth.login("111", "dd")
 // auth.createUser("12312312", "password")

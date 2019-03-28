@@ -22,7 +22,7 @@ class Event {
 
 const fetch = require("node-fetch");
 const vmTypes = ["Basic", "Large", "Ultra-Large"];
-
+const vmModel = require('./Models/vmModel')
 const monitor = module.exports = {};
 
 smartFetch = (url, arguments) => {
@@ -59,77 +59,91 @@ postEvent = (postData, url) => {
  * Creates a VM for the specified user and returns {success, vmID, and ccID}
  */
 monitor.createVM = (Event) => {
-
-    if (Event.ccID === "auth") return //auth is a restricted username because that's where we store the passwords
-
     return new Promise((resolve) => {
-        let url = `${rootURL}/${Event.ccID}.json`;
-
-        let body = Event;
         let ccID = Event.ccID;
+        let newVM = vmModel({
+            owner: ccID,
+            vmType: Event.vmType,
+            initialVMType: Event.vmType,
+            state: "Suspended",
+            events: []
+        });
 
-        console.log("event.ccID: ",Event.ccID);
-
-        body.events = {};
-
-        //Instantiate the VM's events with a "Create" event.
-        body.events["-000000"] = {
+        newVM.events.push({
             eventTime: Date.now(),
             eventType: "Create"
-        };
+        })
 
+        newVM.save((err) => {
+            if(err) console.log(err)
 
-        //Remove extraneous data properties
-        delete body.eventType;
-        delete body.eventTime;
-        delete body.vmID;
-        delete body.ccID;
-
-
-        postEvent(body, url).then(data => {
-            console.log(data);
-
-            let response = {
-                success: true,
-                vmID: data.name, //firebase returns this as a name
-                ccID: ccID
-            };
-            resolve(response)
+            resolve({success: true});
         })
     })
 };
+
+
+
+var levels = new Map([
+    ["Basic", 0],
+    ["Large", 1],
+    ["Ultra-Large", 2]
+]);
+
+var levels2 = new Map([
+    [0, "Basic"],
+    [1, "Large"],
+    [2, "Ultra-Large"]
+]);
+
 
 /**
  * Start, Stop, Upgrade, Downgrade, Delete
  * Adds the event to the list of events for the specified VM belonging to the specified user
  */
 monitor.event = (Event) => {
-
-    if (Event.ccID === "auth") return //auth is a restricted username because that's where we store the passwords
-
     return new Promise((resolve) => {
-        let url = `${rootURL}/${Event.ccID}/${Event.vmID}/events.json`;
-        let body = Event;
+        vmModel.findById(Event.vmID, (err, data) =>{
+            if(err) console.log(err)
+            
+            if(Event.eventType == "Start" || Event.eventType == "Stop") {
+                if (Event.eventType == "Start") {
+                    data.state = "Running";
+                } else {
+                    data.state = "Suspended";
+                }
+                data.events.push({eventTime: Date.now(), eventType: Event.eventType});
+                data.save((err) => {
+                    if(err) console.log(err)
+                    resolve({success: true});
+                });
 
-        vmID = Event.vmID;
-        ccID = Event.ccID;
+            } else if (Event.eventType == "Upgrade" || Event.eventType == "Downgrade") {
+                var levelId = levels.get(data.vmType);
+                if(Event.eventType == "Upgrade") {
+                    levelId++;
+                } else if (Event.eventType == "Downgrade") {
+                    levelId--;
+                }                
+                data.vmType = levels2.get(levelId);        
+                data.events.push({eventTime: Date.now(), eventType: Event.eventType});
+                data.save((err) => {
+                    if(err) console.log(err)
+                    resolve({success: true});
+                });
 
-
-        //Remove extraneous data properties
-        //delete body.vmType; need this for usage calculations
-        delete body.vmID;
-        delete body.ccID;
-
-        body.eventTime = Date.now();
-        body.vmType = null; //leave it as an empty field
-
-        postEvent(body, url).then(data => {
-            let response = {
-                success: true,
-                vmID: vmID, 
-                ccID: ccID
-            };
-            resolve(response)
+            } else if (Event.eventType == "Delete") {
+                vmModel.findByIdAndDelete(Event.vmID, (err,data) =>
+                {
+                    if(err){
+                        console.log(err);
+                        resolve({success: false});
+                    }
+                    resolve({success: true});
+                });
+            } else {
+                resolve({success: false});
+            }
         })
     })
 };
@@ -157,64 +171,16 @@ monitor.event = (Event) => {
 // └─────────┴───────────────┴─────────────┘
 
 monitor.getVMs = (Event) => {
-    return new Promise((resolve) => {
-        let url = `${rootURL}/${Event.ccID}.json`;
-        let arguments = {
-            method: "GET",
-        }
-        smartFetch(url, arguments).then(data => {
-            if (data !== null) {
-
-                Object.keys(data).forEach(key => {
-
-                    let vm = data[key]
-                    vm.initialVMType = vm.vmType
-
-                    //Flatten events into arrays for eacn virtual machine
-                    if (vm.hasOwnProperty("events")) {
-                        vm.events = Object.values(vm.events)
-
-                        //Calculate current VM Type
-                        let initType = vmTypes.findIndex(el => {
-                            return el === vm.vmType
-                        })
-                        let delta = 0
-                        vm.events.forEach(e => {
-                            if (e.eventType === "Upgrade") delta++
-                            else if (e.eventType === "Downgrade") delta--
-                        })
-
-                        let newType = initType + delta
-                        if (newType <= 2 && newType >= 0) vm.vmType = vmTypes[newType]
-
-
-                        //Get current status
-                        let state = "Suspended" //After a create, the default is suspended
-
-                        //Find current status by finding the most recent start, stop or delete event
-                        
-                        for (let i = (vm.events.length - 1); i >= 0; i--) {
-                            if (vm.events[i].eventType === "Stop") {
-                                state = "Suspended"
-                                break
-                            } else if (vm.events[i].eventType === "Start") {
-                                state = "Running"
-                                break
-                            } else if (vm.events[i].eventType === "Delete") {
-                                state = "Deleted"
-                                break
-                            }
-                        }
-
-                        vm.state = state
-
-                    }
-
-                })
-            }
-            
-            resolve(data)
-        })
+    return new Promise((resolve) => {        
+        
+        vmModel.find({owner: Event.ccID}, (err, data) =>{ 
+            var total = {};
+            data.forEach((oneData) => {
+                total[oneData._id] = oneData;
+            })
+            resolve(total);
+        })   
+                
     })
 };
 

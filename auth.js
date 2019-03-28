@@ -6,45 +6,46 @@ const saltRounds = 10
 
 var auth = module.exports = {}
 
-smartFetch = (url, arguments) =>{
-    return new Promise((resolve, reject) =>{
-        fetch(url, arguments)
-            .then(stream => {
-                stream.json().then(data =>{
-                    resolve (data)
-                })
-            })
-            .catch(e =>{
-                reject(e)
-            })
-    })
-}
+var userModel = require('./Models/userModel')
 
-const rootURL = "https://clouda2backend.firebaseio.com"
+// smartFetch = (url, arguments) =>{
+//     return new Promise((resolve, reject) =>{
+//         fetch(url, arguments)
+//             .then(stream => {
+//                 stream.json().then(data =>{
+//                     resolve (data)
+//                 })
+//             })
+//             .catch(e =>{
+//                 reject(e)
+//             })
+//     })
+// }
 
-postEvent = (postData, url) =>{
-    return new Promise ((resolve) =>{
-        let arguments = {
-            method: "POST",
-            body: JSON.stringify(postData)
-        }
-        smartFetch(url, arguments).then(data =>{
-            resolve(data)
-        }).catch(e =>{
-            console.log(e)
-        })
-    })
-}
+// const rootURL = "https://clouda2backend.firebaseio.com"
+
+// postEvent = (postData, url) =>{
+//     return new Promise ((resolve) =>{
+//         let arguments = {
+//             method: "POST",
+//             body: JSON.stringify(postData)
+//         }
+//         smartFetch(url, arguments).then(data =>{
+//             resolve(data)
+//         }).catch(e =>{
+//             console.log(e)
+//         })
+//     })
+// }
 
 /**
  * Creates a VM for the specified user and returns {success, vmID, and ccID}
  */
 auth.login = (username, password) => {
-    return new Promise((resolve) => {
-        let url = `${rootURL}/auth/${username}.json`
-
-        smartFetch(url, {method: "GET"}).then(hash => {
-            bcrypt.compare(password, hash, function(err, success){
+    return new Promise((resolve) => {        
+        userModel.find({username: username}, (err, user) =>{
+            if(err) console.log(err)            
+            bcrypt.compare(password, user[0].password, function(err, success){
                 if (success){
                     console.log(`Username "${username}" and password "${password}" successfully logged in.`)
                     resolve(true)
@@ -60,20 +61,16 @@ auth.login = (username, password) => {
 auth.createUser = (username, password) => {
     return new Promise((resolve) => {
         //Hash stored as the object where the key is the username == ccID
-        let url = `${rootURL}/auth/${username}.json`
+        // let url = `${rootURL}/auth/${username}.json`
 
-        bcrypt.hash(password, saltRounds, function(err, hash){
-            if (!err) {
-                let arguments = {
-                    method: "PUT",
-                    body: JSON.stringify(hash)
-                }
-                smartFetch(url, arguments).then(data => {
-                    console.log(data)
-                    let response = {
-                        success: true,
-                    }
-                    resolve(response)  
+        bcrypt.hash(password, saltRounds, (err, hash) => {
+            if (!err) {               
+                var newUser = userModel({
+                    username: username,
+                    password: hash
+                });
+                newUser.save((err) => {
+                    resolve({success: true});
                 })
             }
         })
