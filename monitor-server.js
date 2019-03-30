@@ -40,7 +40,7 @@ router.get('/', function (req, res) {
 //get all the VMs
 router.get('/vm/all', (req, res) => {
     var event = {
-        ccID: req.query.ccID
+        ccID: req.body.event.ccID
     };
     monitor.getVMs(event).then(function (data) {
         res.json(data);
@@ -64,8 +64,8 @@ router.post('/create', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-    var username = req.body.username;
-    var password = req.body.password;
+    var username = req.body.event.username;
+    var password = req.body.event.password;
     auth.login(username, password).then(function (data) {
         res.json(data);
     });
@@ -98,10 +98,10 @@ router.get('/vm/usage', (req, res) => {
     var endTime = 0
 
     var event = {
-        ccID: req.query.ccID,
-        vmID: req.query.vmID,
-        startTime: req.query.startTime,
-        endTime: req.query.endTime
+        ccID: req.body.event.ccID,
+        vmID: req.body.event.vmID,
+        startTime: req.body.event.startTime,
+        endTime: req.body.event.endTime
     };
 
     if (event.startTime && event.endTime) {
@@ -148,14 +148,14 @@ router.get('/vm/totalUsage', (req, res) => {
     var startTime = 0;
     var endTime = 0
     var event = {
-        ccID: req.query.ccID,
-        startTime: req.query.startTime,
-        endTime: req.query.endTime
+        ccID: req.body.event.ccID,
+        startTime: req.body.event.startTime,
+        endTime: req.body.event.endTime
     };
 
     if (event.startTime && event.endTime) {
-        startTime = req.query.startTime;
-        endTime = req.query.endTime;
+        startTime = req.body.event.startTime;
+        endTime = req.body.event.endTime;
     }
     monitor.allVMUsage(event, startTime, endTime).then(function (data) {
         res.json(data);
