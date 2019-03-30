@@ -8,7 +8,7 @@ var cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var monitorDomain;
+var monitorDomain = 'www.google.com';
 var http = require("http");
 const request = require('request-promise');
 
@@ -26,7 +26,7 @@ app.use(cors({
 const port = process.env.PORT || 8080;
 
 router.get('/', function (req, res) {
-  res.json({ message: 'Hello World!' });
+  res.json({ message: 'VIM is running!' });
 });
 
 //get all the VMs
@@ -36,8 +36,7 @@ router.get('/vm/all', (req, res) => {
   };
   
   let options = {
-    host: monitorDomain,
-    path: "/vm/all",
+    uri: monitorDomain+'/vm/all',
     method: "GET",
     body: event,
     headers: {
@@ -82,8 +81,7 @@ router.post('/create', (req, res) => {
   var event = req.body.event;
 
   let options = {
-    host: monitorDomain,
-    path: "/create",
+    uri: monitorDomain+'/create',
     method: "POST",
     body: event,
     headers: {
@@ -112,8 +110,7 @@ router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
 
   let options = {
-    host: monitorDomain,
-    path: "/launchEvent",
+    uri: monitorDomain+'/launchEvent',
     method: "POST",
     body: event,
     headers: {
@@ -145,8 +142,7 @@ router.get('/vm/usage', (req, res) => {
   } */
   
   let options = {
-    host: monitorDomain,
-    path: "/vm/usage",
+    uri: monitorDomain+'/vm/usage',
     method: "GET",
     body: event,
     headers: {
@@ -176,8 +172,7 @@ router.get('/vm/totalUsage', (req, res) => {
   } */
   
   let options = {
-    host: monitorDomain,
-    path: "/vm/totalUsage",
+    uri: monitorDomain+'/vm/totalUsage',
     method: "GET",
     body: event,
     headers: {
