@@ -28,9 +28,6 @@ router.get('/', function (req, res) {
   res.json({ message: 'Hello World!' });
 });
 
-
-
-
 //get all the VMs
 router.get('/vm/all', (req, res) => {
   var event = {
@@ -46,19 +43,20 @@ router.get('/vm/all', (req, res) => {
     }
   }
 
-  let req = http.request(options, function (res){
-    res.on("data", function(data) {
+  let req2 = http.request(options, function (res2){
+    res2.on("data", function(data) {
+      console.log("data: ", data);
       res.json(data);
     });
-    res.on('end', () => {
+    res2.on('end', () => {
       console.log("get all vm request ended");
     });
   }).on("error", (err) => {
     console.log ("Error: " + err);
   })
 
-  req.write();
-  req.end();
+  req2.write(event);
+  req2.end();
 });
 
 router.post('/createUser', (req, res) => {
@@ -70,11 +68,33 @@ router.post('/createUser', (req, res) => {
 });
 
 //create VM
-router.post('/create', (req, res) => {
+router.post('/create', (req, res) => {  
+  let options = {
+    host: monitorDomain,
+    path: "/create",
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    }
+  }
+  let req2 = http.request(options, function (res2){
+    res2.on("data", function(data) {
+      console.log("data: ", data);
+      res.json(data);
+    });
+    res2.on('end', () => {
+      console.log("create VM request ended");
+    });
+  }).on("error", (err) => {
+    console.log ("Error: " + err);
+  })
+  
   var event = req.body.event;
-  monitor.createVM(event).then(function (data) {
-    res.json(data);
-  });
+  
+  //send the request
+  req2.write(event); //the event will be in the req.body
+  //end the request
+  req2.end();
 });
 
 router.post('/login', (req, res) => {
@@ -87,26 +107,34 @@ router.post('/login', (req, res) => {
 
 //route to launch event
 router.post('/launchEvent', (req, res) => {
+  let options = {
+    host: monitorDomain,
+    path: "/launchEvent",
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    }
+  }
+  let req2 = http.request(options, function (res2){
+    res2.on("data", function(data) {
+      console.log("data: ", data);
+      res.json(data);
+    });
+    res2.on('end', () => {
+      console.log("launch event request ended");
+    });
+  }).on("error", (err) => {
+    console.log ("Error: " + err);
+  })
+  
   var event = req.body.event;
-  monitor.event(event).then(function (data) {
-    res.json(data);
-  });
+  
+  //send the request
+  req2.write(event); //the event will be in the req.body
+  //end the request
+  req2.end();
 });
 
-
-
-//Route for getting the usage for a single VM of a single user (vmID required)
-//Duration in seconds, charge in dollars ($)
-//Example body to pass for the following route
-/*{
-    "event": {
-    "ccID": "leo2",
-    "vmID": "-L_AOG8nhgnRwEhQ16k7"
-
-},
-    "startTime": "1551748108793",
-    "endTime": "1551754901338"
-}*/
 router.get('/vm/usage', (req, res) => {
   var startTime = 0;
   var endTime = 0
@@ -118,46 +146,36 @@ router.get('/vm/usage', (req, res) => {
     endTime: req.query.endTime
   };
   
-  if (event.startTime && event.endTime) {
+ /*  if (event.startTime && event.endTime) {
     startTime = event.startTime;
     endTime = event.endTime;
+  } */
+  
+  let options = {
+    host: monitorDomain,
+    path: "/vm/usage",
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    }
   }
-  monitor.singleVMUsage(event, startTime, endTime).then(function (data) {
-    res.json(data);
-  });
-});
-//Sample Result Data:
-// {
-//     "vm": "-L_AOG8nhgnRwEhQ16k7",
-//     "usageCycles": [
-//     {
-//         "duration": 28.346,
-//         "vmType": "Basic",
-//         "charge": 0.23621666666666666
-//     },
-//     {
-//         "duration": 9.443,
-//         "vmType": "Large",
-//         "charge": 0.015738333333333333
-//     },
-//     {
-//         "duration": 3.762,
-//         "vmType": "Ultra-Large",
-//         "charge": 0.009405
-//     }
-// ]
-// }
 
-//Route for getting the usage for all VMs of a single user (vmID not needed for all VMs)
-//Duration in seconds, charge in dollars ($)
-//Example body to pass for the following route
-// {
-//     "event": {
-//     "ccID": "leo2",
-// },
-//     "startTime": "1551748108793",
-//     "endTime": "1551754901338"
-// }
+  let req2 = http.request(options, function (res2){
+    res2.on("data", function(data) {
+      console.log("data: ", data);
+      res.json(data);
+    });
+    res2.on('end', () => {
+      console.log("get single vm usage request ended");
+    });
+  }).on("error", (err) => {
+    console.log ("Error: " + err);
+  })
+
+  req2.write(event);
+  req2.end();
+});
+
 router.get('/vm/totalUsage', (req, res) => {
   var startTime = 0;
   var endTime = 0
@@ -167,49 +185,35 @@ router.get('/vm/totalUsage', (req, res) => {
     endTime: req.query.endTime
   };
 
-  if (event.startTime && event.endTime) {
+  /* if (event.startTime && event.endTime) {
     startTime = req.query.startTime;
     endTime = req.query.endTime;
+  } */
+  
+  let options = {
+    host: monitorDomain,
+    path: "/vm/totalUsage",
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    }
   }
-  monitor.allVMUsage(event, startTime, endTime).then(function (data) {
-    res.json(data);
-  });
+
+  let req2 = http.request(options, function (res2){
+    res2.on("data", function(data) {
+      console.log("data: ", data);
+      res.json(data);
+    });
+    res2.on('end', () => {
+      console.log("get all vm usage request ended");
+    });
+  }).on("error", (err) => {
+    console.log ("Error: " + err);
+  })
+
+  req2.write(event);
+  req2.end();
 });
-//Sample result data:
-// [
-//     {
-//         "vm": "-L_AOCphdmnqYnJQOTC-",
-//         "usageCycles": []
-//     },
-//     {
-//         "vm": "-L_AOFmFEKgRbpC_sCHe",
-//         "usageCycles": []
-//     },
-//     {
-//         "vm": "-L_AOG8nhgnRwEhQ16k7",
-//         "usageCycles": [
-//             {
-//                 "duration": 28.346,
-//                 "vmType": "Basic",
-//                 "charge": 0.23621666666666666
-//             },
-//             {
-//                 "duration": 9.443,
-//                 "vmType": "Large",
-//                 "charge": 0.015738333333333333
-//             },
-//             {
-//                 "duration": 3.762,
-//                 "vmType": "Ultra-Large",
-//                 "charge": 0.009405
-//             }
-//         ]
-//     },
-//     {
-//         "vm": "-L_AOGyMIwQ0bpvf_MOz",
-//         "usageCycles": []
-//     }
-// ]
 
 
 app.use('/', router);
