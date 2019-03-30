@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 
 var monitorDomain;
 var http = require("http");
+const request = require('request-promise');
 
 //CORS to allow acess to backend from frontend
 app.use(cors({
@@ -38,12 +39,21 @@ router.get('/vm/all', (req, res) => {
     host: monitorDomain,
     path: "/vm/all",
     method: "GET",
+    body: event,
     headers: {
         "Content-Type": "application/json",
     }
   }
 
-  let req2 = http.request(options, function (res2){
+  request(options).then(data =>{
+    console.log("data: ",data);
+    res.json(data);
+  }) 
+  .catch (function (err){
+    console.log ("error: ", err)
+  })
+
+  /* let req2 = http.request(options, function (res2){
     res2.on("data", function(data) {
       console.log("data: ", data);
       res.json(data);
@@ -56,7 +66,7 @@ router.get('/vm/all', (req, res) => {
   })
 
   req2.write(event);
-  req2.end();
+  req2.end() */;
 });
 
 router.post('/createUser', (req, res) => {
@@ -69,32 +79,24 @@ router.post('/createUser', (req, res) => {
 
 //create VM
 router.post('/create', (req, res) => {  
+  var event = req.body.event;
+
   let options = {
     host: monitorDomain,
     path: "/create",
     method: "POST",
+    body: event,
     headers: {
         "Content-Type": "application/json",
     }
   }
-  let req2 = http.request(options, function (res2){
-    res2.on("data", function(data) {
-      console.log("data: ", data);
-      res.json(data);
-    });
-    res2.on('end', () => {
-      console.log("create VM request ended");
-    });
-  }).on("error", (err) => {
-    console.log ("Error: " + err);
+  request(options).then(data =>{
+    console.log("data: ",data);
+    res.json(data);
+  }) 
+  .catch (function (err){
+    console.log ("error: ", err)
   })
-  
-  var event = req.body.event;
-  
-  //send the request
-  req2.write(event); //the event will be in the req.body
-  //end the request
-  req2.end();
 });
 
 router.post('/login', (req, res) => {
@@ -107,38 +109,29 @@ router.post('/login', (req, res) => {
 
 //route to launch event
 router.post('/launchEvent', (req, res) => {
+  var event = req.body.event;
+
   let options = {
     host: monitorDomain,
     path: "/launchEvent",
     method: "POST",
+    body: event,
     headers: {
         "Content-Type": "application/json",
     }
   }
-  let req2 = http.request(options, function (res2){
-    res2.on("data", function(data) {
-      console.log("data: ", data);
-      res.json(data);
-    });
-    res2.on('end', () => {
-      console.log("launch event request ended");
-    });
-  }).on("error", (err) => {
-    console.log ("Error: " + err);
+
+  request(options).then(data =>{
+    console.log("data: ",data);
+    res.json(data);
+  }) 
+  .catch (function (err){
+    console.log ("error: ", err)
   })
   
-  var event = req.body.event;
-  
-  //send the request
-  req2.write(event); //the event will be in the req.body
-  //end the request
-  req2.end();
 });
 
 router.get('/vm/usage', (req, res) => {
-  var startTime = 0;
-  var endTime = 0
-
   var event = {
     ccID: req.query.ccID,
     vmID: req.query.vmID,
@@ -155,30 +148,22 @@ router.get('/vm/usage', (req, res) => {
     host: monitorDomain,
     path: "/vm/usage",
     method: "GET",
+    body: event,
     headers: {
         "Content-Type": "application/json",
     }
   }
 
-  let req2 = http.request(options, function (res2){
-    res2.on("data", function(data) {
-      console.log("data: ", data);
-      res.json(data);
-    });
-    res2.on('end', () => {
-      console.log("get single vm usage request ended");
-    });
-  }).on("error", (err) => {
-    console.log ("Error: " + err);
+  request(options).then(data =>{
+    console.log("data: ",data);
+    res.json(data);
+  }) 
+  .catch (function (err){
+    console.log ("error: ", err)
   })
-
-  req2.write(event);
-  req2.end();
 });
 
 router.get('/vm/totalUsage', (req, res) => {
-  var startTime = 0;
-  var endTime = 0
   var event = {
     ccID: req.query.ccID,
     startTime: req.query.startTime,
@@ -194,25 +179,20 @@ router.get('/vm/totalUsage', (req, res) => {
     host: monitorDomain,
     path: "/vm/totalUsage",
     method: "GET",
+    body: event,
     headers: {
         "Content-Type": "application/json",
     }
   }
 
-  let req2 = http.request(options, function (res2){
-    res2.on("data", function(data) {
-      console.log("data: ", data);
-      res.json(data);
-    });
-    res2.on('end', () => {
-      console.log("get all vm usage request ended");
-    });
-  }).on("error", (err) => {
-    console.log ("Error: " + err);
+  request(options).then(data =>{
+    console.log("data: ",data);
+    res.json(data);
+  }) 
+  .catch (function (err){
+    console.log ("error: ", err)
   })
-
-  req2.write(event);
-  req2.end();
+  
 });
 
 
