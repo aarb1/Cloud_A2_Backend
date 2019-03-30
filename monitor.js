@@ -25,6 +25,8 @@ const vmTypes = ["Basic", "Large", "Ultra-Large"];
 const vmModel = require('./Models/vmModel')
 const monitor = module.exports = {};
 
+  
+
 smartFetch = (url, arguments) => {
     return new Promise((resolve, reject) => {
         fetch(url, arguments)
