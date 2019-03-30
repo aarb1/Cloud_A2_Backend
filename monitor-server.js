@@ -1,5 +1,6 @@
 const port = process.env.PORT || 10000;
 const monitor = require('./monitor')
+const auth = require('./auth')
 
 var fs = require("fs")
 var express = require('express');
@@ -11,13 +12,18 @@ app.use(bodyParser.json());
 
 //middleware to handle logging
 app.use(function (req, res, next) {
+    console.log(req);
+    let user = req.body.event.ccID || "patrick";
+    let eventType = req.url;
+    let date = Date.now();
     processInput(user, eventType, date);
-    console.log('Time:', Date.now());
     next()
 });
 function processInput(user, event, date) {
-    fs.open('H://log.txt', 'a', 666, function (e, id) {
-        fs.write(id, "-USER-" + user + "-EVENT-" + event + "-DATE-" + date + "\n", null, 'utf8', function () {
+    fs.open('cloud/log.txt', 'a', 666, function (e, id) {
+        let str ="USER:" + user + ".EVENT:" + event + ".DATE:" + date + "\n";
+        console.log(str);
+        fs.write(id, str, null, 'utf8', function () {
             fs.close(id, function () {
                 console.log('file is updated');
             });
@@ -30,34 +36,15 @@ router.get('/', function (req, res) {
 });
 
 
+
 //get all the VMs
 router.get('/vm/all', (req, res) => {
     var event = {
         ccID: req.query.ccID
     };
-
-    let options = {
-        host: monitorDomain,
-        path: "/vm/all",
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        }
-    }
-
-    let req = http.request(options, function (res) {
-        res.on("data", function (data) {
-            res.json(data);
-        });
-        res.on('end', () => {
-            console.log("get all vm request ended");
-        });
-    }).on("error", (err) => {
-        console.log("Error: " + err);
-    })
-
-    req.write();
-    req.end();
+    monitor.getVMs(event).then(function (data) {
+        res.json(data);
+    });
 });
 
 router.post('/createUser', (req, res) => {
