@@ -8,6 +8,9 @@ var cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+var monitorDomain;
+var http = require("http");
+
 //CORS to allow acess to backend from frontend
 app.use(cors({
   'allowedHeaders': ['sessionId', 'Content-Type'],
@@ -16,21 +19,8 @@ app.use(cors({
   'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
   'preflightContinue': false
 }))
-/**
- * OVERVIEW
- * 
- * Monitor.js
- * 
- * - Read monitor.js to examine the Event Object and Event Result format
- * - For all create events, call createVM(Event)
- * - For all other events (start, stop, etc) call event(Event)
- * - For vm information, call getVMs(Event)
- * - Sample monitor.js code below
- * 
- * Auth.js
- * - Auth has two functions: createUser and login
- * 
- */
+
+
 
 const port = process.env.PORT || 8080;
 
@@ -46,9 +36,29 @@ router.get('/vm/all', (req, res) => {
   var event = {
     ccID: req.query.ccID
   };
-  monitor.getVMs(event).then(function (data) {
-    res.json(data);
-  });
+  
+  let options = {
+    host: monitorDomain,
+    path: "/vm/all",
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    }
+  }
+
+  let req = http.request(options, function (res){
+    res.on("data", function(data) {
+      res.json(data);
+    });
+    res.on('end', () => {
+      console.log("get all vm request ended");
+    });
+  }).on("error", (err) => {
+    console.log ("Error: " + err);
+  })
+
+  req.write();
+  req.end();
 });
 
 router.post('/createUser', (req, res) => {
