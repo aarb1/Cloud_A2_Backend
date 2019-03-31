@@ -39,6 +39,7 @@ router.get('/', function (req, res) {
 
 //get all the VMs
 router.post('/vm/all', (req, res) => {
+    console.log(req.body);
     var event = {
         ccID: req.body.event.ccID
     };
