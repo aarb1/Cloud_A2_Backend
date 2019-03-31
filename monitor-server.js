@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(function (req, res, next) {
     JSON.parse(req.body).then(bood => {
         console.log(bood);
-        let user = req.body.event.ccID || "patrick";
+        let user = req.body.ccID || "patrick";
         let eventType = req.url;
         let date = new Date()
         date = date.toUTCString();
