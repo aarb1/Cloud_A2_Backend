@@ -14,17 +14,18 @@ app.use(bodyParser.json());
 app.use(function (req, res, next) {
     JSON.parse(req.body).then(bood => {
         console.log(bood);
+        let user = req.body.event.ccID || "patrick";
+        let eventType = req.url;
+        let date = new Date()
+        date = date.toUTCString();
+        processInput(user, eventType, date);
+        next()
     })
-    let user = req.body.event.ccID || "patrick";
-    let eventType = req.url;
-    let date = new Date()
-    date = date.toUTCString();
-    processInput(user, eventType, date);
-    next()
+
 });
 function processInput(user, event, date) {
     fs.open('cloud/log.txt', 'a', 666, function (e, id) {
-        let str ="USER:" + user + ".EVENT:" + event + ".DATE:" + date + "\n";
+        let str = "USER:" + user + ".EVENT:" + event + ".DATE:" + date + "\n";
         console.log(str);
         fs.write(id, str, null, 'utf8', function () {
             fs.close(id, function () {
