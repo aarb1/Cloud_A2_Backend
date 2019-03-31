@@ -34,7 +34,8 @@ router.get('/', function (req, res) {
 //get all the VMs
 router.get('/vm/all', (req, res) => {
   var event = {
-    ccID: req.query.ccID
+      ccID: req.query.ccID
+    
   };
 
   const options = {
@@ -50,42 +51,7 @@ router.get('/vm/all', (req, res) => {
     .then(json => {
       console.log(json)
       res.json(json);
-    })
-
-  /*
-  let options = {
-    uri: monitorDomain+'/vm/all',
-    method: "POST",
-    body: event,
-    headers: {
-        "Content-Type": "application/json",
-    },
-    json: true
-  }
-
-  request(options).then(data =>{
-    console.log("data: ",data);
-    res.json(data);
-  }) 
-  .catch (function (err){
-    console.log ("error: ", err)
-  })*/
-
-
-  /* let req2 = http.request(options, function (res2){
-    res2.on("data", function(data) {
-      console.log("data: ", data);
-      res.json(data);
     });
-    res2.on('end', () => {
-      console.log("get all vm request ended");
-    });
-  }).on("error", (err) => {
-    console.log ("Error: " + err);
-  })
-
-  req2.write(event);
-  req2.end() */;
 });
 
 router.post('/createUser', (req, res) => {
@@ -100,22 +66,21 @@ router.post('/createUser', (req, res) => {
 router.post('/create', (req, res) => {
   var event = req.body.event;
 
-  let options = {
-    uri: monitorDomain + '/create',
-    method: "POST",
-    body: event,
+  const options = {
+    method: 'POST',
+    body: JSON.stringify(event),
     headers: {
       "Content-Type": "application/json",
-    },
-    json: true
+    }
   }
-  request(options).then(data => {
-    console.log("data: ", data);
-    res.json(data);
-  })
-    .catch(function (err) {
-      console.log("error: ", err)
-    })
+
+  fetch(monitorDomain + '/create', options)
+    .then(data => data.json())
+    .then(json => {
+      console.log(json)
+      res.json(json);
+    });
+
 });
 
 router.post('/login', (req, res) => {
@@ -129,24 +94,21 @@ router.post('/login', (req, res) => {
 //route to launch event
 router.post('/launchEvent', (req, res) => {
   var event = req.body.event;
-
-  let options = {
-    uri: monitorDomain + '/launchEvent',
-    method: "POST",
-    body: event,
+  const options = {
+    method: 'POST',
+    body: JSON.stringify(event),
     headers: {
       "Content-Type": "application/json",
-    },
-    json: true
+    }
   }
 
-  request(options).then(data => {
-    console.log("data: ", data);
-    res.json(data);
-  })
-    .catch(function (err) {
-      console.log("error: ", err)
-    })
+  fetch(monitorDomain + '/launchEvent', options)
+    .then(data => data.json())
+    .then(json => {
+      console.log(json)
+      res.json(json);
+    });
+
 
 });
 
@@ -156,30 +118,25 @@ router.get('/vm/usage', (req, res) => {
     vmID: req.query.vmID,
     startTime: req.query.startTime,
     endTime: req.query.endTime
+
   };
 
-  /*  if (event.startTime && event.endTime) {
-     startTime = event.startTime;
-     endTime = event.endTime;
-   } */
-
-  let options = {
-    uri: monitorDomain + '/vm/usage',
-    method: "POST",
-    body: event,
+  const options = {
+    method: 'POST',
+    body: JSON.stringify(event),
     headers: {
       "Content-Type": "application/json",
-    },
-    json: true
+    }
   }
 
-  request(options).then(data => {
-    console.log("data: ", data);
-    res.json(data);
-  })
-    .catch(function (err) {
-      console.log("error: ", err)
-    })
+  fetch(monitorDomain + '/vm/usage', options)
+    .then(data => data.json())
+    .then(json => {
+      console.log(json)
+      res.json(json);
+    });
+
+
 });
 
 router.get('/vm/totalUsage', (req, res) => {
@@ -189,28 +146,20 @@ router.get('/vm/totalUsage', (req, res) => {
     endTime: req.query.endTime
   };
 
-  /* if (event.startTime && event.endTime) {
-    startTime = req.query.startTime;
-    endTime = req.query.endTime;
-  } */
-
-  let options = {
-    uri: monitorDomain + '/vm/totalUsage',
-    method: "POST",
-    body: event,
+  const options = {
+    method: 'POST',
+    body: JSON.stringify(event),
     headers: {
       "Content-Type": "application/json",
-    },
-    json: true
+    }
   }
 
-  request(options).then(data => {
-    console.log("data: ", data);
-    res.json(data);
-  })
-    .catch(function (err) {
-      console.log("error: ", err)
-    })
+  fetch(monitorDomain + '/vm/totalUsage', options)
+    .then(data => data.json())
+    .then(json => {
+      console.log(json)
+      res.json(json);
+    });
 
 });
 
