@@ -38,11 +38,10 @@ router.get('/vm/all', (req, res) => {
   let options = {
     uri: monitorDomain+'/vm/all',
     method: "POST",
-    body: event,
+    body: JSON.stringify(event),
     headers: {
         "Content-Type": "application/json",
-    },
-    json: true
+    }
   }
 
   request(options).then(data =>{
@@ -87,7 +86,8 @@ router.post('/create', (req, res) => {
     body: event,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
+    json: true
   }
   request(options).then(data =>{
     console.log("data: ",data);
@@ -116,7 +116,8 @@ router.post('/launchEvent', (req, res) => {
     body: event,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
+    json: true
   }
 
   request(options).then(data =>{
@@ -148,7 +149,8 @@ router.get('/vm/usage', (req, res) => {
     body: event,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
+    json: true
   }
 
   request(options).then(data =>{
@@ -178,7 +180,8 @@ router.get('/vm/totalUsage', (req, res) => {
     body: event,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
+    json: true
   }
 
   request(options).then(data =>{
