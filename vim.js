@@ -8,7 +8,7 @@ var cors = require('cors');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var monitorDomain = 'www.google.com';
+var monitorDomain = '10.0.1.5';
 var http = require("http");
 const request = require('request-promise');
 
