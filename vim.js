@@ -78,7 +78,7 @@ router.post('/createUser', (req, res) => {
 
 //create VM
 router.post('/create', (req, res) => {  
-  var event = req.body.event;
+  var event = req.body;
 
   let options = {
     uri: monitorDomain+'/create',
