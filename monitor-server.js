@@ -43,6 +43,7 @@ router.post('/vm/all', (req, res) => {
         ccID: req.body.event.ccID
     };
     monitor.getVMs(event).then(function (data) {
+        console.log(data);
         res.json(data);
     });
 });
