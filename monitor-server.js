@@ -12,7 +12,6 @@ app.use(bodyParser.json());
 
 //middleware to handle logging
 app.use(function (req, res, next) {
-
     console.log(req.body);
     let user = req.body.ccID || "patrick";
     let eventType = req.url;
@@ -23,7 +22,7 @@ app.use(function (req, res, next) {
 
 });
 function processInput(user, event, date) {
-    fs.open('cloud/log.txt', 'a', 666, function (e, id) {
+    fs.open("cloud/log.txt", "a", 666, function (e, id) {
         let str = "USER:" + user + ".EVENT:" + event + ".DATE:" + date + "\n";
         console.log(str);
         fs.write(id, str, null, 'utf8', function () {
@@ -44,7 +43,7 @@ router.get('/', function (req, res) {
 router.post('/vm/all', (req, res) => {
     console.log(req.body);
     var event = {
-        ccID: req.body.event.ccID
+        ccID: req.body.ccID
     };
     monitor.getVMs(event).then(function (data) {
         console.log(data);
@@ -62,15 +61,15 @@ router.post('/createUser', (req, res) => {
 
 //create VM
 router.post('/create', (req, res) => {
-    var event = req.body.event;
+    var event = req.body;
     monitor.createVM(event).then(function (data) {
         res.json(data);
     });
 });
 
 router.post('/login', (req, res) => {
-    var username = req.body.event.username;
-    var password = req.body.event.password;
+    var username = req.body.username;
+    var password = req.body.password;
     auth.login(username, password).then(function (data) {
         res.json(data);
     });
@@ -78,7 +77,7 @@ router.post('/login', (req, res) => {
 
 //route to launch event
 router.post('/launchEvent', (req, res) => {
-    var event = req.body.event;
+    var event = req.body;
     monitor.event(event).then(function (data) {
         res.json(data);
     });
@@ -103,10 +102,10 @@ router.post('/vm/usage', (req, res) => {
     var endTime = 0
 
     var event = {
-        ccID: req.body.event.ccID,
-        vmID: req.body.event.vmID,
-        startTime: req.body.event.startTime,
-        endTime: req.body.event.endTime
+        ccID: req.body.ccID,
+        vmID: req.body.vmID,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime
     };
 
     if (event.startTime && event.endTime) {
@@ -153,14 +152,14 @@ router.post('/vm/totalUsage', (req, res) => {
     var startTime = 0;
     var endTime = 0
     var event = {
-        ccID: req.body.event.ccID,
-        startTime: req.body.event.startTime,
-        endTime: req.body.event.endTime
+        ccID: req.body.ccID,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime
     };
 
     if (event.startTime && event.endTime) {
-        startTime = req.body.event.startTime;
-        endTime = req.body.event.endTime;
+        startTime = req.body.startTime;
+        endTime = req.body.endTime;
     }
     monitor.allVMUsage(event, startTime, endTime).then(function (data) {
         res.json(data);
