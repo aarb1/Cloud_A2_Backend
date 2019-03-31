@@ -41,7 +41,8 @@ router.get('/vm/all', (req, res) => {
     body: event,
     headers: {
         "Content-Type": "application/json",
-    }
+    },
+    json: true
   }
 
   request(options).then(data =>{
@@ -78,8 +79,8 @@ router.post('/createUser', (req, res) => {
 
 //create VM
 router.post('/create', (req, res) => {  
-  var event = req.body;
-
+  var event = req.body.event;
+  
   let options = {
     uri: monitorDomain+'/create',
     method: "POST",
