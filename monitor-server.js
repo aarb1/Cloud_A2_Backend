@@ -12,15 +12,14 @@ app.use(bodyParser.json());
 
 //middleware to handle logging
 app.use(function (req, res, next) {
-    JSON.parse(req.body).then(bood => {
-        console.log(bood);
-        let user = req.body.ccID || "patrick";
-        let eventType = req.url;
-        let date = new Date()
-        date = date.toUTCString();
-        processInput(user, eventType, date);
-        next()
-    })
+
+    console.log(req.body);
+    let user = req.body.ccID || "patrick";
+    let eventType = req.url;
+    let date = new Date()
+    date = date.toUTCString();
+    processInput(user, eventType, date);
+    next()
 
 });
 function processInput(user, event, date) {
