@@ -39,7 +39,7 @@ router.get('/vm/all', (req, res) => {
 
   const options = {
     method: 'POST',
-    body: event,
+    body: JSON.stringify(event),
     headers: {
       "Content-Type": "application/json",
     }
