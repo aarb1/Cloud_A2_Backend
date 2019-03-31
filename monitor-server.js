@@ -12,6 +12,9 @@ app.use(bodyParser.json());
 
 //middleware to handle logging
 app.use(function (req, res, next) {
+    JSON.parse(req.body).then(bood => {
+        console.log(bood);
+    })
     let user = req.body.event.ccID || "patrick";
     let eventType = req.url;
     let date = new Date()
