@@ -37,7 +37,7 @@ router.get('/vm/all', (req, res) => {
   
   let options = {
     uri: monitorDomain+'/vm/all',
-    method: "GET",
+    method: "POST",
     body: event,
     headers: {
         "Content-Type": "application/json",
@@ -143,7 +143,7 @@ router.get('/vm/usage', (req, res) => {
   
   let options = {
     uri: monitorDomain+'/vm/usage',
-    method: "GET",
+    method: "POST",
     body: event,
     headers: {
         "Content-Type": "application/json",
@@ -173,7 +173,7 @@ router.get('/vm/totalUsage', (req, res) => {
   
   let options = {
     uri: monitorDomain+'/vm/totalUsage',
-    method: "GET",
+    method: "POST",
     body: event,
     headers: {
         "Content-Type": "application/json",

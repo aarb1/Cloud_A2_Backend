@@ -12,10 +12,10 @@ app.use(bodyParser.json());
 
 //middleware to handle logging
 app.use(function (req, res, next) {
-    console.log(req);
     let user = req.body.event.ccID || "patrick";
     let eventType = req.url;
-    let date = Date.now();
+    let date = new Date()
+    date = date.toUTCString();
     processInput(user, eventType, date);
     next()
 });
@@ -38,7 +38,7 @@ router.get('/', function (req, res) {
 
 
 //get all the VMs
-router.get('/vm/all', (req, res) => {
+router.post('/vm/all', (req, res) => {
     var event = {
         ccID: req.body.event.ccID
     };
@@ -93,7 +93,7 @@ router.post('/launchEvent', (req, res) => {
     "startTime": "1551748108793",
     "endTime": "1551754901338"
 }*/
-router.get('/vm/usage', (req, res) => {
+router.post('/vm/usage', (req, res) => {
     var startTime = 0;
     var endTime = 0
 
@@ -144,7 +144,7 @@ router.get('/vm/usage', (req, res) => {
 //     "startTime": "1551748108793",
 //     "endTime": "1551754901338"
 // }
-router.get('/vm/totalUsage', (req, res) => {
+router.post('/vm/totalUsage', (req, res) => {
     var startTime = 0;
     var endTime = 0
     var event = {
